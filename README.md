@@ -23,3 +23,9 @@
 **"[title] description"**
 - title 종류 : Mod(수정), Add(추가), Del(삭제), Fix(버그 수정)
 - description: 상황에 맞게 자유롭게 직관적으로 작성
+
+
+# TIG Count
+- jaejilee: 0
+- mkong: 0
+- junhylee: 0
