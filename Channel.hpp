@@ -7,7 +7,8 @@
 
 class Client;
 
-class Channel{//각 채널 마다 유저 리스트, 채널 이름
+class Channel {//각 채널 마다 유저 리스트, 채널 이름
+//jaejilee damdang
 public :
 	Channel(const std::string& name);
 	void	addClient();

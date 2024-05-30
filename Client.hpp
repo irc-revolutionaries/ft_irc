@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-class Client{
+class Client {
+//junhylee damdang
 public :
 	Client(const std::string& name, int fd);
 	void	sendMessage();
