@@ -5,21 +5,25 @@
 #include <string>
 
 class Client;
+class Channel;
+class Server;
 
 class Command {
 //Command가 Server도 갖고 있어야함
-	public :
-		Command(Client& client, const std::string& msg);
-		void parseCmd();
-		void workCmd(Client& client);
-		void pass(Client& client, const std::string& params);
-		void nick(Client& client, const std::string& params);
-		void user(Client& client, const std::string& params);
-		void join(Client& client, const std::string& params);
+public :
+	Command();
+	// Command(Client* client, const std::string& msg);
+	void handleCmd(Client* client, const std::string& msg);//overloading
+	void handleCmd(Server& server, Client* client, const std::string& msg);
+	void handleCmd(Client* client, Channel* channel, const std::string& msg);
+	bool parseCmd(const std::string& msg);
+	void pass(Server& server, Client* client);
+	void nick(Client* client);
+	void user(Client* client);
+	void join(Client* client, Channel* channel);
 
-	private :
-		std::vector <std::string> _cmdlist;
-		std::string _msg;
-		std::string _cmd;
-		std::string _params;
+private :
+	std::vector <std::string> _cmdlist;
+	std::string _cmd;
+	std::vector <std::string> _params;
 };
