@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 #define EVENT_MAX	64
 #define MAX_BUF		512
