@@ -1,13 +1,24 @@
 #include "Client.hpp"
 
-Client::Client(const std::string& nickname, int fd)
-: _nickname(nickname), _fd(fd), _pass(0), _nick(0), _user(0) {}
+Client::Client(int fd)
+: _fd(fd), _pass(false), _nick(false), _user(false) {}
+
+void	Client::setNickname(const std::string& nickname) { this->_nickname = nickname; }
+void	Client::setUsername(const std::string& username) { this->_username = username; }
+void	Client::setRealname(const std::string& realname) { this->_realname = realname; }
+void	Client::setHostname(const std::string& hostname) { this->_hostname = hostname; }
+void	Client::setServername(const std::string& servername) { this->_servername = servername; }
+void	Client::setPass(bool check) { this->_pass = check; }
+void	Client::setNick(bool check) { this->_nick = check; }
+void	Client::setUser(bool check) { this->_user = check; }
+
+const int	Client::getFd() const { return (_fd); }
+const std::string&	Client::getNickname() const { return (_nickname); }
+const std::string&	Client::getUsername() const { return (_username); }
+const std::string&	Client::getRealname() const { return (_realname); }
+const std::string&	Client::getHostname() const { return (_hostname); }
+const std::string&	Client::getServername() const { return (_servername); }
 
 void Client::setJoinedChannel(const std::string& channel_name) {
 	this->_joined_channel.push_back(channel_name);
 }
-
-void Client::setPass(bool check) { this->_pass = check; }
-void Client::setNick(bool check) { this->_nick = check; }
-void Client::setUser(bool check) { this->_user = check; }
-void Client::setNickname(const std::string& nickname) { this->_nickname = nickname; }
