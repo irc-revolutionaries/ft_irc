@@ -2,6 +2,7 @@
 
 #include "essential.hpp"
 #include "Client.hpp"
+#include "Channel.hpp"
 
 class Client;
 class Channel;
@@ -20,6 +21,8 @@ public :
 	void	setServer(std::vector<struct kevent>& change_list);
 	void	addClient(std::vector<struct kevent>& change_list);
 	void	disconnectClient(int client_fd);
+
+	void	createChannel(Client* first_client, std::string ch_name);
 private :
 	std::map<std::string, Channel *>	_channel_list;
 	std::map<int, Client *>				_client_list;
