@@ -25,7 +25,7 @@ public :
 	void	createChannel(Client* first_client, std::string ch_name);
 private :
 	std::map<std::string, Channel *>	_channel_list;
-	std::map<int, Client *>				_client_list;
+	std::map<std::string, Client *>		_client_list;
 	struct sockaddr_in	_server_addr;
 	std::string	_password;
 	int	_port;
@@ -73,14 +73,12 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
 	if (_fd == -1)
 		exitMsg("socket error\n" + std::string(strerror(errno)));
-	
 	memset(&_server_addr, 0, sizeof(_server_addr));
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	_server_addr.sin_port = htons(_port);
 	if (bind(_fd, (struct sockaddr *)(&_server_addr), sizeof(_server_addr)) == -1)
 		exitMsg("bind error\n" + std::string(strerror(errno)));
-	
 	if (listen(_fd, 10) == -1) //최대연결 요청 수를 몇으로 해야할 지..?
 		exitMsg("listen error\n" + std::string(strerror(errno)));
 	fcntl(_fd, F_SETFL, O_NONBLOCK);
