@@ -149,3 +149,10 @@ int	main()
 		}
 	}
 }
+
+void	Server::createChannel(Client *first_client, std::string ch_name) {
+	std::pair<std::string, Channel *> channel_arg;
+	channel_arg.first = ch_name;
+	channel_arg.second = new Channel(ch_name, first_client);
+	_channel_list.insert(channel_arg);
+}
