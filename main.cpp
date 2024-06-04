@@ -27,6 +27,24 @@ int	main(int argc, char **argv) {
 					std::cerr << "client socket error" << "\n";
 					server.disconnectClient(curr_event->ident);
 				}
+			} else if (curr_event->filter == EVFILT_READ) {
+				if (curr_event->ident == server.getFd())
+					server.addClient(change_list);
+				else if (server.getClientList().find(curr_event->ident) != \
+							server.getClientList().end()) {
+					char buf[MAX_BUF];
+					int n = recv(curr_event->ident, buf, MAX_BUF, 0);
+
+					if (n <= 0) {
+						if (n < 0)
+							std::cerr << "client read error\n";
+						//eof
+					} else {
+						buf[n] = '\0';
+					}
+				}
+			} else if (curr_event->filter == EVFILT_WRITE) {
+				// send msg
 			}
 		}
 	}
