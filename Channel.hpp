@@ -17,26 +17,31 @@ public :
 	void	part(Client* request_client);
 
 	// 채널 옵션 설정 함수들
-	int	plus_opt_i(Client* request_client);
-	int	plus_opt_t(Client* request_client);
-	int	plus_opt_k(Client* request_client, std::string key);
-	int	plus_opt_l(Client* request_client, int limit);
-	int	plus_opt_o(Client* request_client, Client* target_client);
+	int	plusOptI(Client* request_client);
+	int	plusOptT(Client* request_client);
+	int	plusOptK(Client* request_client, std::string key);
+	int	plusOptL(Client* request_client, int limit);
+	int	plusOptO(Client* request_client, Client* target_client);
 
 	// 채널 옵션 제거 함수들
-	int	minus_opt_i(Client* request_client);
-	int	minus_opt_t(Client* request_client);
-	int	minus_opt_k(Client* request_client);
-	int	minus_opt_l(Client* request_client);
-	int	minus_opt_o(Client* request_client, Client* target_client);
+	int	minusOptI(Client* request_client);
+	int	minusOptT(Client* request_client);
+	int	minusOptK(Client* request_client);
+	int	minusOptL(Client* request_client);
+	int	minusOptO(Client* request_client, Client* target_client);
 
 	// 채널에 있는 클라이언트 map을 확인하는 함수
 	const std::map<Client *, bool>	&get_user_list(void) const;
+
+	// getter 함수
+	const std::string&	get_name(void) const;
+	const std::string&	get_topic(void) const;
 
 private :
 	std::string					_name;
 	std::map<Client *, bool>	_user_list;
 	std::string					_topic;
+	std::vector<std::string>	_invite_list;
 
 	bool check_authority(Client* client);
 
