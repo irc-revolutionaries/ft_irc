@@ -11,6 +11,7 @@ public :
 	void	setRealname(const std::string& realname);
 	void	setHostname(const std::string& hostname);
 	void	setServername(const std::string& servername);
+	void	setMessage(const std::string& message);
 	void	setPass(bool check);
 	void	setNick(bool check);
 	void	setUser(bool check);
@@ -21,6 +22,7 @@ public :
 	const std::string&	getRealname() const;
 	const std::string&	getHostname() const;
 	const std::string&	getServername() const;
+	const std::string&	getMessage() const;
 
 	void	setJoinedChannel(const std::string& channel_name);
 private :
@@ -29,6 +31,7 @@ private :
 	std::string	_realname;
 	std::string _hostname;
 	std::string _servername;
+	std::string _message;
 	int			_fd;
 	bool		_pass;
 	bool		_nick;
