@@ -1,19 +1,5 @@
 #include "Server.hpp"
 
-void	exitMsg(const std::string& msg) {
-	std::cerr << msg << "\n";
-	exit(EXIT_FAILURE);
-}
-
-void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
-        uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
-{
-    struct kevent temp_event;
-
-    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-    change_list.push_back(temp_event);	
-}
-
 const std::map<std::string, Channel *>&	Server::getChannelList() const { return (_channel_list); }
 const std::map<int, Client *>&			Server::getClientList() const { return (_client_list); }
 const std::string&		Server::getPassword() const { return (_password); }
@@ -80,9 +66,23 @@ void	Server::createChannel(Client *first_client, std::string ch_name) {
 	_channel_list.insert(channel_arg);
 }
 
-Client* Server::findClient(const std::string& name) const {
-	for (std::pair<int, Client*> i : _client_list)
-		if (i.second->getNickname() == name)
-			return (i.second);
+Client* Server::findClient(const std::string& name) {
+	for (std::map<int, Client*>::iterator it = _client_list.begin(); it != _client_list.end(); it++)
+		if (it->second->getNickname() == name)
+			return (it->second);
 	return (NULL);
+}
+
+void	exitMsg(const std::string& msg) {
+	std::cerr << msg << "\n";
+	exit(EXIT_FAILURE);
+}
+
+void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
+        uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
+{
+    struct kevent temp_event;
+
+    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+    change_list.push_back(temp_event);	
 }

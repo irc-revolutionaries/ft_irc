@@ -22,8 +22,9 @@ public :
 	const std::string&	getRealname() const;
 	const std::string&	getHostname() const;
 	const std::string&	getServername() const;
-	const std::string&	getMessage() const;
+	const std::vector<std::string>&	getMessage() const;
 
+	void	clearMessage();
 	void	setJoinedChannel(const std::string& channel_name);
 private :
 	std::string _nickname;
@@ -31,10 +32,10 @@ private :
 	std::string	_realname;
 	std::string _hostname;
 	std::string _servername;
-	std::string _message;
 	int			_fd;
 	bool		_pass;
 	bool		_nick;
 	bool		_user;
-	std::vector<std::string> _joined_channel;
+	std::vector<std::string>	_message;
+	std::vector<std::string>	_joined_channel;
 };
