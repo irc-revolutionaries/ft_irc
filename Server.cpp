@@ -1,11 +1,7 @@
 #include "Server.hpp"
-
-const std::map<std::string, Channel *>&	Server::getChannelList() const { return (_channel_list); }
-const std::map<int, Client *>&			Server::getClientList() const { return (_client_list); }
-const std::string&		Server::getPassword() const { return (_password); }
-const int Server::getPort() const { return (_port); }
-const int Server::getFd() const { return (_fd); }
-const int Server::getKq() const { return (_kq); }
+#include "Client.hpp"
+#include "Channel.hpp"
+#include "Command.hpp"
 
 Server::Server(const char* port, const char* password) {
 	for (int i = 0; port[i]; ++i)
@@ -15,12 +11,20 @@ Server::Server(const char* port, const char* password) {
 	_password = password;
 }
 
-void	Server::disconnectClient(int client_fd) {
-	std::cout << "client disconnected: " << client_fd << "\n";
-	close(client_fd);
-	delete _client_list[client_fd];
-	_client_list.erase(client_fd);
+Server::~Server() {
+	std::map<int, Client *>::iterator it;
+	for (it = _client_list.begin(); it != _client_list.end(); it++) {
+		close(it->first);
+		delete _client_list[it->first];
+	}
 }
+
+const std::map<std::string, Channel *>&	Server::getChannelList() const { return (_channel_list); }
+const std::map<int, Client *>&			Server::getClientList() const { return (_client_list); }
+const std::string&	Server::getPassword() const { return (_password); }
+const int Server::getPort() const { return (_port); }
+const int Server::getFd() const { return (_fd); }
+const int Server::getKq() const { return (_kq); }
 
 void	Server::setServer(std::vector<struct kevent>& change_list) {
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
@@ -59,6 +63,28 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 	_client_list[client_fd] = new_client;
 }
 
+void	Server::makeCommand(int ident) {
+	Command	cmd;
+	char	buf[MAX_BUF];
+	ssize_t	n = recv(ident, buf, MAX_BUF, 0);
+
+	if (n <= 0) {
+		if (n < 0)
+			std::cerr << "client read error\n";
+		//eof
+	} else {
+		buf[n] = '\0';
+		cmd.handleCmd(*this, _client_list[ident], buf);
+	}
+}
+
+void	Server::disconnectClient(int client_fd) {
+	std::cout << "client disconnected: " << client_fd << "\n";
+	close(client_fd);
+	delete _client_list[client_fd];
+	_client_list.erase(client_fd);
+}
+
 void	Server::createChannel(Client *first_client, std::string ch_name) {
 	std::pair<std::string, Channel *> channel_arg;
 	channel_arg.first = ch_name;
@@ -67,7 +93,8 @@ void	Server::createChannel(Client *first_client, std::string ch_name) {
 }
 
 Client* Server::findClient(const std::string& name) {
-	for (std::map<int, Client*>::iterator it = _client_list.begin(); it != _client_list.end(); it++)
+	std::map<int, Client *>::iterator it;
+	for (it = _client_list.begin(); it != _client_list.end(); it++)
 		if (it->second->getNickname() == name)
 			return (it->second);
 	return (NULL);
@@ -79,8 +106,7 @@ void	exitMsg(const std::string& msg) {
 }
 
 void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
-        uint16_t flags, uint32_t fflags, intptr_t data, void *udata)
-{
+        uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
     struct kevent temp_event;
 
     EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);

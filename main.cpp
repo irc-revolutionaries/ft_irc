@@ -7,6 +7,7 @@
 int	main(int argc, char **argv) {
 //argv[1] == port, argv[2] == password
 	Server server(argv[1], argv[2]);
+	Command cmd;
 	std::vector<struct kevent>	change_list;
 	struct kevent*	curr_event;
 	struct kevent	event_list[EVENT_MAX];
@@ -31,20 +32,18 @@ int	main(int argc, char **argv) {
 				if (curr_event->ident == server.getFd())
 					server.addClient(change_list);
 				else if (server.getClientList().find(curr_event->ident) != \
-							server.getClientList().end()) {
-					char buf[MAX_BUF];
-					int n = recv(curr_event->ident, buf, MAX_BUF, 0);
-
-					if (n <= 0) {
+							server.getClientList().end())
+					server.makeCommand(curr_event->ident);
+			} else if (curr_event->filter == EVFILT_WRITE) {
+				std::map<int, Client*>::const_iterator it = server.getClientList().find(static_cast<int>(curr_event->ident));
+				if (it != server.getClientList().end()) {
+					std::vector<std::string> msg_vec = it->second->getMessage();
+					for (int i = 0; i < msg_vec.size(); ++i) {
+						ssize_t	n = send(curr_event->ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
 						if (n < 0)
-							std::cerr << "client read error\n";
-						//eof
-					} else {
-						buf[n] = '\0';
+							exitMsg("send error");
 					}
 				}
-			} else if (curr_event->filter == EVFILT_WRITE) {
-				// send msg
 			}
 		}
 	}

@@ -26,6 +26,7 @@ public :
 
 	void	clearMessage();
 	void	setJoinedChannel(const std::string& channel_name);
+	void	deleteJoinedChannel(const std::string& channel_name);
 private :
 	std::string _nickname;
 	std::string	_username;
