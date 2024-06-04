@@ -1,5 +1,6 @@
 #include "essential.hpp"
 #include "Channel.hpp"
+#include "Client.hpp"
 
 Channel::Channel(const std::string& name, Client* first_client) : _name(name), _opt_i(false), _opt_t(false), _opt_l(0) {
 	_user_list.insert(std::pair<Client *, bool>(first_client, true));
@@ -15,7 +16,7 @@ bool Channel::check_authority(Client* client) {
 }
 
 // i 옵션 설정되면 0, 권한이 없으면 1 반환
-int	Channel::plus_opt_i(Client* request_client) {
+int	Channel::plusOptI(Client* request_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_i = true;
@@ -23,7 +24,7 @@ int	Channel::plus_opt_i(Client* request_client) {
 }
 
 // t 옵션 설정되면 0, 권한이 없으면 1 반환
-int	Channel::plus_opt_t(Client* request_client) {
+int	Channel::plusOptT(Client* request_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_t = true;
@@ -31,26 +32,28 @@ int	Channel::plus_opt_t(Client* request_client) {
 }
 
 // k 옵션 설정되면 0, 권한이 없으면 1 반환
-int	Channel::plus_opt_k(Client* request_client, std::string key) {
+int	Channel::plusOptK(Client* request_client, std::string key) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_k = key;
 	return 0;
 }
 
-// l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2 반환
-int	Channel::plus_opt_l(Client* request_client, int limit) {
+// l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
+int	Channel::plusOptL(Client* request_client, int limit) {
 	if (check_authority(request_client) == false) {
 		return 1;
 	} else if (_opt_l >= limit) {
 		return 2;
+	} else if (_user_list.size() > limit) {
+		return 3;
 	}
 	_opt_l = limit;
 	return 0;
 }
 
 // o 옵션 설정되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
-int	Channel::plus_opt_o(Client* request_client, Client* target_client) {
+int	Channel::plusOptO(Client* request_client, Client* target_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
@@ -62,7 +65,7 @@ int	Channel::plus_opt_o(Client* request_client, Client* target_client) {
 }
 
 // i 옵션 제거되면 0, 권한이 없으면 1 반환
-int	Channel::minus_opt_i(Client* request_client) {
+int	Channel::minusOptI(Client* request_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_i = false;
@@ -70,7 +73,7 @@ int	Channel::minus_opt_i(Client* request_client) {
 }
 
 // t 옵션 제거되면 0, 권한이 없으면 1 반환
-int	Channel::minus_opt_t(Client* request_client) {
+int	Channel::minusOptT(Client* request_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_t = false;
@@ -78,7 +81,7 @@ int	Channel::minus_opt_t(Client* request_client) {
 }
 
 // k 옵션 제거되면 0, 권한이 없으면 1 반환
-int	Channel::minus_opt_k(Client* request_client) {
+int	Channel::minusOptK(Client* request_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_k = "";
@@ -86,7 +89,7 @@ int	Channel::minus_opt_k(Client* request_client) {
 }
 
 // l 옵션 제거되면 0, 권한이 없으면 1 반환
-int	Channel::minus_opt_l(Client* request_client) {
+int	Channel::minusOptL(Client* request_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_l = 0;
@@ -94,7 +97,7 @@ int	Channel::minus_opt_l(Client* request_client) {
 }
 
 // o 옵션 제거되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
-int	Channel::minus_opt_o(Client* request_client, Client* target_client) {
+int	Channel::minusOptO(Client* request_client, Client* target_client) {
 	if (check_authority(request_client) == false)
 		return 1;
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
@@ -105,25 +108,29 @@ int	Channel::minus_opt_o(Client* request_client, Client* target_client) {
 	return 0;
 }
 
-// join 성공하면 0, invite-only면 1, key가 틀렸으면 2 반환
+// join 성공하면 0, invite-only + invite 못 받았으면 1, key가 틀렸으면 2, 인원수 초과면 3 반환
 int	Channel::join(Client* new_client, std::string key) {
-	if (_opt_i == true) {
+	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), new_client->getNickname());
+	if (_opt_i == true && it == _invite_list.end())
 		return 1;
-	} else if (_opt_k != "" && _opt_k != key) {
+	if (_opt_k != "" && _opt_k != key)
 		return 2;
-	}
+	if (_opt_l != 0 && _user_list.size() >= _opt_l)
+		return 3;
+	if (_opt_i == true)
+		_invite_list.erase(it);
 	_user_list.insert(std::make_pair(new_client, false));
 	return 0;
 }
 
-// invite 성공하면 0, 권한이 없으면 1, 이미 등록된 client면 2 반환
+// invite 성공하면 0, 권한이 없으면 1, 이미 invite된 client면 2 반환
 int	Channel::invite(Client* request_client, Client* target_client) {
 	if (check_authority(request_client) == false)
 		return 1;
-	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
-	if (it != _user_list.end())
+	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), target_client->getNickname());
+	if (it == _invite_list.end())
 		return 2;
-	_user_list.insert(std::make_pair(target_client, false));
+	_invite_list.push_back(target_client->getNickname());
 	return 0;
 }
 
@@ -157,4 +164,13 @@ void	Channel::part(Client* request_client) {
 // 클라이언트 map getter
 const std::map<Client *, bool>	&Channel::get_user_list(void) const {
 	return _user_list;
+}
+
+// name 반환
+const std::string&	Channel::get_name(void) const {
+	return _name;
+}
+
+const std::string&	Channel::get_topic(void) const {
+	return _topic;
 }
