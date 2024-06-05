@@ -147,3 +147,7 @@ void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int1
     EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
     change_list.push_back(temp_event);	
 }
+
+void	Server::deleteChannelList(std::string ch_name) {
+	_channel_list.erase(ch_name);
+}

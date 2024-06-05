@@ -209,22 +209,29 @@ void	Channel::quit(Client* request_client) {
 	}
 }
 
+// 에러로 quit을 했을 때 유저를 제거만 해줌
 void	Channel::errorQuit(Client* request_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(request_client);
 	if (it != _user_list.end())
 		_user_list.erase(it);
 }
 
+// 채널의 모든 클라이언트들에게 메세지를 보냄
+void	Channel::broadcast(const std::string& message) {
+	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
+		i->first->setMessage(message);
+}
+
 // 클라이언트 map getter
-const std::map<Client *, bool>	&Channel::get_user_list(void) const {
+const std::map<Client *, bool>	&Channel::getUserList(void) const {
 	return _user_list;
 }
 
 // name 반환
-const std::string&	Channel::get_name(void) const {
+const std::string&	Channel::getName(void) const {
 	return _name;
 }
 
-const std::string&	Channel::get_topic(void) const {
+const std::string&	Channel::getTopic(void) const {
 	return _topic;
 }
