@@ -6,7 +6,7 @@
 Server::Server(const char* port, const char* password) {
 	for (int i = 0; port[i]; ++i)
 		if (!isdigit(port[i]))
-			exitMsg("port number error");
+			exitMessage("port number error");
 	_port = atoi(port);
 	_password = password;
 }
@@ -32,7 +32,7 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//소켓 생성
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
 	if (_fd == -1)
-		exitMsg("socket error\n" + std::string(strerror(errno)));
+		exitMessage("socket error\n" + std::string(strerror(errno)));
 	
 	memset(&_server_addr, 0, sizeof(_server_addr));
 	_server_addr.sin_family = AF_INET;
@@ -40,17 +40,17 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	_server_addr.sin_port = htons(_port);
 	//소켓에 주소 할당
 	if (bind(_fd, (struct sockaddr *)(&_server_addr), sizeof(_server_addr)) == -1)
-		exitMsg("bind error");
+		exitMessage("bind error");
 	
 	//소켓을 수신 대기 상대로 만들기
 	if (listen(_fd, 10) == -1)
-		exitMsg("listen error");
+		exitMessage("listen error");
 	fcntl(_fd, F_SETFL, O_NONBLOCK); //소켓 non-blocking 설정
 	
 	//kqueue 생성
 	_kq = kqueue();
 	if (_kq == -1)
-		exitMsg("kqueue error");
+		exitMessage("kqueue error");
 	//kevent 저장 벡터, 이벤트를 감시할 식별자, 이벤트 필터, 이벤트 플래그(새로운 이벤트 추가, 이벤트 활성화)
 	changeEvents(change_list, _fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 }
@@ -61,7 +61,7 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 	//클라이언트 소켓 연결
 	client_fd == accept(_fd, NULL, NULL);
 	if (client_fd == -1)
-		exitMsg("accept error");
+		exitMessage("accept error");
 	std::cout << "accept new clinet: " << client_fd << "\n";
 	fcntl(client_fd, F_SETFL, O_NONBLOCK); //non-blocking 모드
 	changeEvents(change_list, client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -77,13 +77,15 @@ void	Server::makeCommand(int ident) {
 	char	buf[MAX_BUF];
 	ssize_t	n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
 
-	if (n <= 0) {
-		if (n < 0)
-			std::cerr << "client read error\n";
-		//eof
-	} else {
+	if (n < 0)
+		std::cerr << "client read error\n";
+	else {
 		buf[n] = '\0';
-		cmd.handleCmd(*this, _client_list[ident], buf);
+		_command += buf;
+		if (_command.find('\n') != 0 || _command.find('\r')) {
+			cmd.handleCmd(*this, _client_list[ident], _command);
+			_command = "";
+		}
 	}
 }
 
@@ -92,16 +94,26 @@ void	Server::sendMessage(int ident) {
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (int i  = 0; i < msg_vec.size(); ++i) {
-			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
+			ssize_t	n = send(ident, (msg_vec[i] + "\n\r").c_str(), msg_vec[i].length(), 0);
 			if (n < 0)
-				exitMsg("send error");
+				exitMessage("send error");
 		}
 	}
 }
 
 void	Server::disconnectClient(int client_fd) {
+	std::vector<std::string> joined_channel = _client_list[client_fd]->getJoinedChannel();
+	Channel* channel;
+
 	std::cout << "client disconnected: " << client_fd << "\n";
 	close(client_fd); //연결 종료
+	for (int i = 0; i < joined_channel.size(); ++i) {
+		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
+		if (_channel_list[joined_channel[i]]->get_user_list().size() == 0) {
+			delete _channel_list[joined_channel[i]];
+			_channel_list.erase(joined_channel[i]);
+		}
+	}
 	delete _client_list[client_fd];
 	_client_list.erase(client_fd);
 }
@@ -122,7 +134,7 @@ Client* Server::findClient(const std::string& name) {
 	return (NULL);
 }
 
-void	exitMsg(const std::string& msg) {
+void	exitMessage(const std::string& msg) {
 	std::cerr << msg << "\n";
 	exit(EXIT_FAILURE);
 }

@@ -6,10 +6,8 @@
 
 int	main(int argc, char **argv) {
 	//argv[1] == port, argv[2] == password
-	if (argc != 3) {
-		std::cerr << "Input format : [PORT] [PASSWORD]\n";
-		exit(1);
-	}
+	if (argc != 3)
+		exitMessage("Input format : [PORT] [PASSWORD]\n");
 	Server server(argv[1], argv[2]);
 	std::vector<struct kevent>	change_list;
 	struct kevent	event_list[EVENT_MAX];
@@ -26,7 +24,7 @@ int	main(int argc, char **argv) {
 			curr_event = &event_list[i];
 			if (curr_event->flags & EV_ERROR) {
 				if (curr_event->ident == server.getFd())
-					exitMsg("server socket error");
+					exitMessage("server socket error");
 				else {
 					std::cerr << "client socket error" << "\n";
 					server.disconnectClient(curr_event->ident);
