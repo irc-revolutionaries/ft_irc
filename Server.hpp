@@ -25,6 +25,8 @@ public :
 	void	disconnectClient(int client_fd);
 	void	createChannel(Client* first_client, std::string ch_name);
 	Client*	findClient(const std::string& name);
+	void	deleteChannelList(std::string ch_name);
+
 private :
 	std::map<std::string, Channel *>	_channel_list;
 	std::map<int, Client *>				_client_list;
