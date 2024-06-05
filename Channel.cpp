@@ -32,7 +32,7 @@ int	Channel::plusOptT(Client* request_client) {
 }
 
 // k 옵션 설정되면 0, 권한이 없으면 1 반환
-int	Channel::plusOptK(Client* request_client, std::string key) {
+int	Channel::plusOptK(Client* request_client, const std::string& key) {
 	if (check_authority(request_client) == false)
 		return 1;
 	_opt_k = key;
@@ -109,7 +109,7 @@ int	Channel::minusOptO(Client* request_client, Client* target_client) {
 }
 
 // join 성공하면 0, invite-only + invite 못 받았으면 1, key가 틀렸으면 2, 인원수 초과면 3 반환
-int	Channel::join(Client* new_client, std::string key) {
+int	Channel::join(Client* new_client, const std::string& key) {
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), new_client->getNickname());
 	if (_opt_i == true && it == _invite_list.end())
 		return 1;
@@ -120,6 +120,14 @@ int	Channel::join(Client* new_client, std::string key) {
 	if (_opt_i == true)
 		_invite_list.erase(it);
 	_user_list.insert(std::make_pair(new_client, false));
+	new_client->setJoinedChannel(_name);
+	std::string temp;
+	temp = new_client->getNickname();
+	temp += " has joined ";
+	temp += _name;
+	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++){
+		i->first->setMessage(temp);
+	}
 	return 0;
 }
 
@@ -131,23 +139,40 @@ int	Channel::invite(Client* request_client, Client* target_client) {
 	if (it == _invite_list.end())
 		return 2;
 	_invite_list.push_back(target_client->getNickname());
+	std::string temp;
+	temp = request_client->getNickname();
+	temp += " invites you to ";
+	temp += _name;
+	target_client->setMessage(temp);
 	return 0;
 }
 
 // kick 성공하면 0, 권한이 없으면 1, 없는 client면 2 반환
-int	Channel::kick(Client* request_client, Client* target_client, std::string key) {
+int	Channel::kick(Client* request_client, Client* target_client, const std::string& reason) {
 	if (check_authority(request_client) == false)
 		return 1;
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end())
 		return 2;
 	_user_list.erase(it);
-	// broad cast message (kick 사유) 보내기!!!!!!!!
+	std::string temp;
+	temp = target_client->getNickname();
+	temp += " was kicked from ";
+	temp += _name;
+	temp += " by ";
+	temp += request_client->getNickname();
+	if (reason != "") {
+		temp += " (reason is ";
+		temp += reason;
+		temp += ")";
+	}
+	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
+		i->first->setMessage(temp);
 	return 0;
 }
 
 // topic 설정 성공하면 0, topic-protection mode인데 권한이 없으면 1 반환
-int	Channel::topic(Client* request_client, std::string topic) {
+int	Channel::topic(Client* request_client, const std::string& topic) {
 	if (_opt_t == true && check_authority(request_client) == false)
 		return 1;
 	_topic = topic;
@@ -157,8 +182,15 @@ int	Channel::topic(Client* request_client, std::string topic) {
 // part를 실행
 void	Channel::part(Client* request_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(request_client);
-	if (it != _user_list.end())
+	if (it != _user_list.end()) {
+		std::string temp;
+		temp = request_client->getNickname();
+		temp += " has left ";
+		temp += _name;
+		for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
+			i->first->setMessage(temp);
 		_user_list.erase(it);
+	}
 }
 
 // 클라이언트 map getter
