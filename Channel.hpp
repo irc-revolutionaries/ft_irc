@@ -10,17 +10,17 @@ public :
 	Channel(const std::string& name, Client* first_client);
 
 	// command에서 호출 할 함수들
-	int		join(Client* new_client, std::string key);
+	int		join(Client* new_client, const std::string& key);
 	int		invite(Client* request_client, Client* target_client);
-	int		kick(Client* request_client, Client* target_client, std::string );
-	int		topic(Client* request_client, std::string topic);
+	int		kick(Client* request_client, Client* target_client, const std::string& reason);
+	int		topic(Client* request_client, const std::string& topic);
 	void	part(Client* request_client);
 
 	// 채널 옵션 설정 함수들
 	int	plusOptI(Client* request_client);
 	int	plusOptT(Client* request_client);
-	int	plusOptK(Client* request_client, std::string key);
-	int	plusOptL(Client* request_client, int limit);
+	int	plusOptK(Client* request_client, const std::string& key);
+	int	plusOptL(Client* request_client, const int limit);
 	int	plusOptO(Client* request_client, Client* target_client);
 
 	// 채널 옵션 제거 함수들
