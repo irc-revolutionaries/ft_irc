@@ -120,6 +120,7 @@ int	Channel::join(Client* new_client, const std::string& key) {
 	if (_opt_i == true)
 		_invite_list.erase(it);
 	_user_list.insert(std::make_pair(new_client, false));
+	new_client->setJoinedChannel(_name);
 	std::string temp;
 	temp = new_client->getNickname();
 	temp += " has joined ";
