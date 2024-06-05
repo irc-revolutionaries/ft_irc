@@ -6,54 +6,45 @@
 #include <sstream>
 
 Command::Command() {
-	_cmdlist.push_back("/join");
 	_cmdlist.push_back("/pass");
-	_cmdlist.push_back("/user");
 	_cmdlist.push_back("/nick");
-	_cmdlist.push_back("/quit");//서버 나가면서 메세지 뱉기 
-	_cmdlist.push_back("/part");//leave channel
-//==============CHANNEL===========
-	_cmdlist.push_back("/topic");
+	_cmdlist.push_back("/user");
+	_cmdlist.push_back("/join");
+
 	_cmdlist.push_back("/invite");
 	_cmdlist.push_back("/kick");
-	_cmdlist.push_back("/mode");
-	_cmdlist.push_back("/dcc");//파일전송
-//===============SERVER===========
-	_cmdlist.push_back("/list");
-	_cmdlist.push_back("/names");
+	_cmdlist.push_back("/topic");
+	_cmdlist.push_back("/part");//leave channel
+	//완료
+	_cmdlist.push_back("/quit");//서버 나가면서 메세지 뱉기
 	_cmdlist.push_back("/privmsg");
 	_cmdlist.push_back("/notice");
-}
-
-void Command::handleCmd(Client* client, const std::string& msg) {
-//msg  512자 넘으면 거절
-//이 함수를 통해서 command 호출
-	if (parseCmd(msg) == false)
-		return ;
-	if (_cmd == "/user")
-		user(client);
-	//work
-}
-void Command::handleCmd(Client* client, Channel* channel, const std::string& msg) {
-//msg  512자 넘으면 거절
-//이 함수를 통해서 command 호출
-	if (parseCmd(msg) == false)
-		return ;
-	//work
+	_cmdlist.push_back("/dcc");//파일전송
+	_cmdlist.push_back("/mode");
 }
 
 void Command::handleCmd(Server& server, Client* client, const std::string& msg) {
 //이 함수를 통해서 command 호출
 	if (parseCmd(msg) == false)
 		return ;
-	if (_cmd == "/pass")
+	else if (_cmd == "/pass")
 		pass(server, client);
+	else if (_cmd == "/nick")
+		nick(server, client);
+	else if (_cmd == "/user")
+		user(client);
 	else if (_cmd == "/join")
 		join(server, client);
 	else if (_cmd == "/invite")
 		invite(server, client);
-	else if (_cmd == "/nick")
-		nick(server, client);
+	else if (_cmd == "/kick")
+		kick(server, client);
+	else if (_cmd == "/topic")
+		topic(server, client);
+	else if (_cmd == "/part")
+		part(server, client);
+	else if (_cmd == "/quit")
+		quit(server, client);
 	//work
 }
 
@@ -94,13 +85,13 @@ void Command::nick(Server& server, Client* client) {
 	std::string nickname = _params[0];
 
 	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&') {
-		std::cerr << "nick wrong start nickname\n";
+		std::cerr << "nick : wrong start nickname\n";
 		return ;
 	}
 	for (size_t i = 0; nickname.size(); ++i) {
 		if (nickname[i] == ' ' || nickname[i] == ',' || nickname[i] == '.' || nickname[i] == '*' ||
 			nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') {
-			std::cerr << "nick wrong nickname\n";
+			std::cerr << "nick : wrong nickname\n";
 			return ;
 		}
 	}
@@ -111,26 +102,28 @@ void Command::nick(Server& server, Client* client) {
 		std::cerr << "nick : nickname already taken\n";
 	}
 	client->setNickname(nickname);
+	client->setMessage("Your nickname has been set to " + nickname);
 }
 
 void Command::user(Client* client) {
+	//USER <username> <hostname> <servername> :<realname>
 	if (_params.size() < 4) { //<= 4 ?
-		std::cerr << " user : invilid numbers of params\n";
+		client->setMessage("invilid numbers of params");
 		return ;
 	}
 	client->setUsername(_params[0]);
 	client->setHostname(_params[1]);
 	client->setServername(_params[2]);
 	client->setRealname(_params[3]);
-	//USER <username> <hostname> <servername> :<realname>
 }
 
 void Command::join(Server& server, Client* client) {
 	//JOIN <channel>{,<channel>} [<key>{,<key>}]
 	//JOIN c1,c2,c3,c4 k1,k2 c4 = "hello,hi"
 	//채널이름에 ',' , 7번, 공백 사용금지
+	//join 채널이름이 없으면 만들어서 server의 chanel
 	if (_params.empty()) {
-		std::cerr << "join : empty params\n";
+		client->setMessage("Invaild numbers of params");
 		return ;
 	}
 	std::map<std::string, std::string> key_map;
@@ -143,7 +136,7 @@ void Command::join(Server& server, Client* client) {
 
 	while (std::getline(channel_ss, buf1, ',')) {
 		if (buf1[0] != '#'){
-			std::cerr << "Wrong channel name\n";
+			client->setMessage("Wrong channel name");
 			std::getline(key_ss, buf2, ',');
 			continue ;
 		}
@@ -169,21 +162,21 @@ void Command::join(Server& server, Client* client) {
 void	Command::invite(Server& server, Client* client){
 	///invite <nickname> <channel>
 	if (_params.size() < 2) {
-        std::cerr << "invite : invaild number of params\n";
+		client->setMessage("invite : invaild number of params");
         return;
     }
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 	//client_list를 std::string, Client *로 갖고있어야함
 
-	if (client_list.find(_params[0]) == client_list.end()){
-		std::cerr << "can't found client\n";
+	if (server.findClient(_params[0])){
+		client->setMessage("Invaild number of params");
 		return ;
 	}
 	if (channel_list.find(_params[1]) == channel_list.end()){
-		std::cerr << "can't found channel\n";
+		client->setMessage("Can not found the channel");
 		return ;
 	}
-	channel_list[_params[1]]->invite(client, client_list[_params[0]]);
+	channel_list[_params[1]]->invite(client, server.findClient(_params[0]));
 }
 
 void	Command::kick(Server& server, Client* client){
@@ -191,7 +184,7 @@ void	Command::kick(Server& server, Client* client){
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 
 	if (_params.size() < 2) {
-		std::cerr << "kick : invaild number of params\n";
+		client->setMessage("Invaild number of params");
 		return ;
 	}
 	std::string channel_name = _params[0];
@@ -199,9 +192,9 @@ void	Command::kick(Server& server, Client* client){
 	if (_params.size() >= 3) {
 		std::string command = _params[2];
 		channel_list[channel_name]->kick(client, server.findClient(target_name), command);
-	} else {
-		channel_list[channel_name]->kick(client, server.findClient(target_name), "");
 	}
+	else
+		channel_list[channel_name]->kick(client, server.findClient(target_name), "");
 }
 
 void	Command::topic(Server& server, Client* client) {
@@ -210,20 +203,20 @@ void	Command::topic(Server& server, Client* client) {
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 
 	if (_params.size() < 1) {
-		std::cerr << "topic : invaild number of params\n";
+		client->setMessage("Invaild number of params");
 		return ;
 	}
 	std::string channel_name = _params[0];
 	if (_params.size() >= 2) {
 		std::string topic = _params[1];
 		if (topic == "") {
-			std::cerr << "topic : empty string can't be set as a topic\n";
+			client->setMessage("topic : empty string can't be set as a topic");
 			return ;
 		}
 		channel_list[channel_name]->topic(client, topic);
-	} else {
-		channel_list[channel_name]->topic(client, "");
 	}
+	else
+		channel_list[channel_name]->topic(client, "");
 }
 
 void	Command::part(Server& server, Client* client) {
@@ -244,3 +237,47 @@ void	Command::part(Server& server, Client* client) {
 		channel_list[channel_name]->part(client);
 	}
 }
+
+void	Command::quit(Server& server, Client* client) {
+	//QUIT <quit message>
+	std::map<std::string, Channel *> channel_list = server.getChannelList();
+	std::vector<std::string> joined_channel = client->getJoinedChannel();
+	if (_params.empty()) {
+		client->setMessage("Invaild number of params\n");
+		return ;
+	}
+	for (unsigned int i = 0; i < joined_channel.size(); ++i)
+		channel_list[joined_channel[i]]->quit(client);
+	server.disconnectClient(client->getFd());
+}
+
+void	Command::privmsg(Server& server, Client* client) {
+	//PRIVMSG <receiver>{,<receiver>} <text to be sent>
+	std::map<std::string, Channel *> channel_list = server.getChannelList();
+	std::vector<std::string> joined_channel = client->getJoinedChannel();
+
+	if (_params.size() < 2) {
+		client->setMessage("Invaild number of params");
+		return ;
+	}
+	std::string buf;
+	std::string msg = _params[1];
+	std::istringstream ss(_params[0]);
+	while (std::getline(ss, buf, ',')) {
+		if (buf[0] == '#') {
+			for (unsigned int i = 0; i < joined_channel.size(); ++i)
+				channel_list[joined_channel[i]]->broadcast(_params[1]);
+		}
+	}
+}
+
+void	Command::notice(Server& server, Client* client) {
+	//NOTICE <nickname> <message>
+	//오류응답 절대 없음 그냥 보내기만해, no channel
+	if (_params.size() < 2) {
+		client->setMessage("Invaild number of params");
+		return ;
+	}
+
+}
+// mode
