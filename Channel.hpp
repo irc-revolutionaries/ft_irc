@@ -17,6 +17,7 @@ public :
 	void	part(Client* request_client);
 	void	quit(Client* request_client);
 	void	errorQuit(Client* request_client);
+	void	broadcast(const std::string& message);
 
 	// 채널 옵션 설정 함수들
 	int	plusOptI(Client* request_client);
@@ -33,11 +34,11 @@ public :
 	int	minusOptO(Client* request_client, Client* target_client);
 
 	// 채널에 있는 클라이언트 map을 확인하는 함수
-	const std::map<Client *, bool>	&get_user_list(void) const;
+	const std::map<Client *, bool>	&getUserList(void) const;
 
 	// getter 함수
-	const std::string&	get_name(void) const;
-	const std::string&	get_topic(void) const;
+	const std::string&	getName(void) const;
+	const std::string&	getTopic(void) const;
 
 private :
 	std::string					_name;
