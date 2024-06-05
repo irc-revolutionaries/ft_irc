@@ -15,6 +15,8 @@ public :
 	int		kick(Client* request_client, Client* target_client, const std::string& reason);
 	int		topic(Client* request_client, const std::string& topic);
 	void	part(Client* request_client);
+	void	quit(Client* request_client);
+	void	errorQuit(Client* request_client);
 
 	// 채널 옵션 설정 함수들
 	int	plusOptI(Client* request_client);

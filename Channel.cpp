@@ -155,6 +155,7 @@ int	Channel::kick(Client* request_client, Client* target_client, const std::stri
 	if (it == _user_list.end())
 		return 2;
 	_user_list.erase(it);
+	request_client->deleteJoinedChannel(_name);
 	std::string temp;
 	temp = target_client->getNickname();
 	temp += " was kicked from ";
@@ -190,7 +191,28 @@ void	Channel::part(Client* request_client) {
 		for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
 			i->first->setMessage(temp);
 		_user_list.erase(it);
+		request_client->deleteJoinedChannel(_name);
 	}
+}
+
+// quit을 했을 때 유저를 제거하고 메세지 보냄
+void	Channel::quit(Client* request_client) {
+	std::map<Client *, bool>::iterator it = _user_list.find(request_client);
+	if (it != _user_list.end()) {
+		_user_list.erase(it);
+		std::string temp;
+		temp = request_client->getNickname();
+		temp += " has quit ";
+		temp += _name;
+		for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
+			i->first->setMessage(temp);
+	}
+}
+
+void	Channel::errorQuit(Client* request_client) {
+	std::map<Client *, bool>::iterator it = _user_list.find(request_client);
+	if (it != _user_list.end())
+		_user_list.erase(it);
 }
 
 // 클라이언트 map getter
