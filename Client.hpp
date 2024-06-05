@@ -25,6 +25,7 @@ public :
 	const std::vector<std::string>&	getMessage() const;
 
 	void	clearMessage();
+	const std::vector<std::string>&	getJoinedChannel() const;
 	void	setJoinedChannel(const std::string& channel_name);
 	void	deleteJoinedChannel(const std::string& channel_name);
 private :

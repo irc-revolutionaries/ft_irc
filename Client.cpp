@@ -29,6 +29,8 @@ void Client::setJoinedChannel(const std::string& channel_name) {
 	this->_joined_channel.push_back(channel_name);
 }
 
+const std::vector<std::string>&	Client::getJoinedChannel() const { return (_joined_channel); }
+
 void Client::deleteJoinedChannel(const std::string& channel_name) {
 	std::vector<std::string>::iterator it = find(_joined_channel.begin(), _joined_channel.end(), channel_name);
 	if (it != _joined_channel.end())
