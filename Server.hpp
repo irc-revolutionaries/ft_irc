@@ -1,11 +1,10 @@
 #pragma once
 
 #include "essential.hpp"
-#include "Client.hpp"
-#include "Channel.hpp"
 
 class Client;
 class Channel;
+class Command;
 
 class Server {
 public :
@@ -21,6 +20,8 @@ public :
 
 	void	setServer(std::vector<struct kevent>& change_list);
 	void	addClient(std::vector<struct kevent>& change_list);
+	void	makeCommand(int ident);
+	void	sendMessage(int ident);
 	void	disconnectClient(int client_fd);
 	void	createChannel(Client* first_client, std::string ch_name);
 	Client*	findClient(const std::string& name);
@@ -32,6 +33,10 @@ private :
 	int	_port;
 	int	_fd;
 	int	_kq;
+
+	//Forbidden constructor
+	Server	();
+	Server	(const Server& copy);
 };
 
 void	exitMsg(const std::string& msg);

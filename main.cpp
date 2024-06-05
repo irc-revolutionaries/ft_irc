@@ -5,11 +5,15 @@
 #include "Command.hpp"
 
 int	main(int argc, char **argv) {
-//argv[1] == port, argv[2] == password
+	//argv[1] == port, argv[2] == password
+	if (argc != 3) {
+		std::cerr << "Input format : [PORT] [PASSWORD]\n";
+		exit(1);
+	}
 	Server server(argv[1], argv[2]);
 	std::vector<struct kevent>	change_list;
-	struct kevent*	curr_event;
 	struct kevent	event_list[EVENT_MAX];
+	struct kevent*	curr_event;
 	int	new_events;
 
 	server.setServer(change_list);
@@ -31,21 +35,10 @@ int	main(int argc, char **argv) {
 				if (curr_event->ident == server.getFd())
 					server.addClient(change_list);
 				else if (server.getClientList().find(curr_event->ident) != \
-							server.getClientList().end()) {
-					char buf[MAX_BUF];
-					int n = recv(curr_event->ident, buf, MAX_BUF, 0);
-
-					if (n <= 0) {
-						if (n < 0)
-							std::cerr << "client read error\n";
-						//eof
-					} else {
-						buf[n] = '\0';
-					}
-				}
-			} else if (curr_event->filter == EVFILT_WRITE) {
-				// send msg
-			}
+							server.getClientList().end())
+					server.makeCommand(curr_event->ident);
+			} else if (curr_event->filter == EVFILT_WRITE)
+				server.sendMessage(curr_event->ident);
 		}
 	}
 }
