@@ -7,7 +7,7 @@ SRCS	=	main.cpp \
 			Server.cpp
 OBJS	=	$(SRCS:.cpp=.o)
 HEADER	=	essential.hpp \
-			Channel.hpp
+			Channel.hpp \
 			Client.hpp \
 			Command.hpp \
 			Server.hpp
@@ -15,7 +15,7 @@ NAME	=	ircserv
 
 all : $(NAME)
 
-$(NAME) : $(OBJS)
+$(NAME) : $(OBJS) $(HEADER)
 	$(CXX) $(FLAGS) $(OBJS) -o $(NAME)
 
 %.o : %.cpp $(HEADER)
