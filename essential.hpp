@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
 extern std::string server_name;
 
@@ -51,6 +52,6 @@ extern std::string server_name;
 #define RPL_TOPIC             332
 
 const std::string& handleResponse(const std::string& nickname, int responseCode, \
-		const std::string& target, const std::string& additionalInfo);
+		const std::string& target = "", const std::string& additionalInfo = "");
 const std::string& messageFormat(int cmd_code, Client *client, const std::string& target, \
 			const std::string& additionalInfo);
