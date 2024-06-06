@@ -110,6 +110,12 @@ const std::string& handleResponse(const std::string& nickname, int responseCode,
 			// :server 332 <nick> <channel> :<topic>
             message = ":" + server_name + " 332 " + nickname + " " + target + " :" + additionalInfo + "\r\n";
             break;
+		case RPL_NAMREPLY: //353
+            message = ":" + server_name + " 353 " + nickname + " = " + target + " :" + additionalInfo + "\r\n";
+            break;
+        case RPL_ENDOFNAMES: //366
+            message = ":" + server_name + " 366 " + nickname + " " + target + " " + ":End of /NAMES list\r\n";
+            break;
 	}
 	return (message);
 }

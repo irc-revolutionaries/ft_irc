@@ -36,4 +36,3 @@
 - ERR_CHANOPRIVSNEEDED	: request 사용자가 operator가 아닐 때 - OK
 - ERR_USERNOTINCHANNEL	: target 사용자가 채널에 있지 않을 때 - OK
 - RPL_CHANNELMODEIS		: mode 반환될 때
-
