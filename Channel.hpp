@@ -11,10 +11,9 @@ public :
 
 	// command에서 호출 할 함수들
 	int		join(Client* new_client, const std::string& key);
-	int		invite(Client* request_client, Client* target_client);
-	int		kick(Client* request_client, Client* target_client, const std::string& reason);
-	int		topic(Client* request_client, const std::string& topic);
-	void	part(Client* request_client);
+	void	invite(Client* request_client, Client* target_client);
+	void	kick(Client* request_client, Client* target_client, const std::string& reason);
+	void	topic(Client* request_client, const std::string& topic);
 	void	quit(Client* request_client);
 	void	errorQuit(Client* request_client);
 	void	broadcast(const std::string& message);
@@ -49,7 +48,8 @@ private :
 	std::string					_topic;
 	std::vector<std::string>	_invite_list;
 
-	bool check_authority(Client* client);
+	bool checkChannelMember(Client* client);
+	bool checkAuthority(Client* client);
 
 	// 옵션 관련 flag들
 	bool		_opt_i;
