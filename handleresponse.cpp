@@ -94,7 +94,8 @@ const std::string& handleResponse(const std::string& nickname, int responseCode,
             message = ":" + server_name + " 331 " + nickname + " " + target + " " + ":No topic is set\r\n";
             break;
         case RPL_TOPIC: // 332
-            message = ":" + server_name + " 332 " + nickname + " " + target + " " + additionalInfo + " " + ":Topic\r\n";
+			// :server 332 <nick> <channel> :<topic>
+            message = ":" + server_name + " 332 " + nickname + " " + target + " :" + additionalInfo + "\r\n";
             break;
 	}
 	return (message);
