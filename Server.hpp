@@ -14,8 +14,8 @@ public :
 	const std::map<std::string, Channel *>&	getChannelList() const;
 	const std::map<int, Client *>&			getClientList() const;
 	const std::string&		getPassword() const;
+	size_t getFd() const;
 	int getPort() const;
-	int getFd() const;
 	int getKq() const;
 
 	void	setServer(std::vector<struct kevent>& change_list);
@@ -34,9 +34,9 @@ private :
 	std::string	_password;
 	std::string _command;
 	std::string	_name;
-	int	_port;
-	int	_fd;
-	int	_kq;
+	size_t	_fd;
+	int		_port;
+	int		_kq;
 
 	//Forbidden constructor
 	Server	();

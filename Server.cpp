@@ -25,15 +25,15 @@ Server::~Server() {
 const std::map<std::string, Channel *>&	Server::getChannelList() const { return (_channel_list); }
 const std::map<int, Client *>&			Server::getClientList() const { return (_client_list); }
 const std::string&	Server::getPassword() const { return (_password); }
-int Server::getPort() const { return (_port); }
-int Server::getFd() const { return (_fd); }
-int Server::getKq() const { return (_kq); }
+size_t	Server::getFd() const { return (_fd); }
+int		Server::getPort() const { return (_port); }
+int		Server::getKq() const { return (_kq); }
 
 //서버 소켓 설정
 void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//소켓 생성
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
-	if (_fd == -1)
+	if (int(_fd) == -1)
 		exitMessage("socket error\n" + std::string(strerror(errno)));
 	
 	memset(&_server_addr, 0, sizeof(_server_addr));
@@ -61,7 +61,7 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 	int	client_fd;
 
 	//클라이언트 소켓 연결
-	client_fd == accept(_fd, NULL, NULL);
+	client_fd = accept(_fd, NULL, NULL);
 	if (client_fd == -1)
 		exitMessage("accept error");
 	std::cout << "accept new clinet: " << client_fd << "\n";
@@ -95,7 +95,7 @@ void	Server::sendMessage(int ident) {
 	std::map<int, Client *>::const_iterator it = _client_list.find(ident);
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
-		for (int i  = 0; i < msg_vec.size(); ++i) {
+		for (size_t i  = 0; i < msg_vec.size(); ++i) {
 			ssize_t	n = send(ident, (msg_vec[i] + "\n\r").c_str(), msg_vec[i].length(), 0);
 			if (n < 0)
 				exitMessage("send error");
@@ -105,11 +105,10 @@ void	Server::sendMessage(int ident) {
 
 void	Server::disconnectClient(int client_fd) {
 	std::vector<std::string> joined_channel = _client_list[client_fd]->getJoinedChannel();
-	Channel* channel;
 
 	std::cout << "client disconnected: " << client_fd << "\n";
 	close(client_fd); //연결 종료
-	for (int i = 0; i < joined_channel.size(); ++i) {
+	for (size_t i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
 		if (_channel_list[joined_channel[i]]->getUserList().size() == 0) {
 			delete _channel_list[joined_channel[i]];
