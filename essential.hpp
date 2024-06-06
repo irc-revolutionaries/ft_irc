@@ -18,7 +18,6 @@ extern std::string server_name;
 #define ERR_ALREADYREGISTRED  462
 #define ERR_BADCHANMASK       476
 #define ERR_BADCHANNELKEY     475
-#define ERR_BANNEDFROMCHAN    474
 #define ERR_CANNOTSENDTOCHAN  404
 #define ERR_CHANNELISFULL     471
 #define ERR_CHANOPRIVSNEEDED  482

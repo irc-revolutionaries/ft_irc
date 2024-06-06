@@ -8,51 +8,94 @@ const std::string& privateMessage(const std::string& nickname, const std::string
 	return (":" + nickname + " PRIVMSG " + channel_name + " :" + message);
 }
 
-const std::string& handleServerResponse(const std::string& nickname, int responseCode, \
+const std::string& handleResponse(const std::string& nickname, int responseCode, \
 		const std::string& target = "", const std::string& additionalInfo = "") {
-    std::string message;
-    switch (responseCode) {
-        case 484: // ERR_RESTRICTED
-            message = ":" + server_name + " 484 " + nickname + " :Your connection is restricted\r\n";
+	std::string message;
+	switch (responseCode) {
+	    case ERR_ALREADYREGISTRED: //462
+			message = ":" + server_name + " 462 " + nickname + " :You may not reregister\r\n";
+			break;
+	    case ERR_BADCHANMASK: //476
+			message = ":" + server_name + " 476 " + nickname + " :Bad Channel Mask\r\n";
+			break;
+		case ERR_BADCHANNELKEY: //475
+			message = ":" + server_name + " 475 " + nickname + " " + target + " " + ":Cannot join channel (+k)\r\n";
+			break;
+		case ERR_CANNOTSENDTOCHAN: //404
+			message = ":" + server_name + " 404 " + nickname + " " + target + " " + ":Cannot send to channel\r\n";
+			break;
+		case ERR_CHANNELISFULL: //471
+	    	message = ":" + server_name + " 471 " + nickname + " " + target + " " + ":Cannot join channel (+l)\r\n";
+			break;
+		case ERR_CHANOPRIVSNEEDED: //482
+			message = ":" + server_name + " 482 " + nickname + " " + target + " " + ":You're not channel operator\r\n";
+			break;
+        case ERR_ERRONEUSNICKNAME: //432
+            message = ":" + server_name + " 432 " + nickname + " " + target + " :Erroneous Nickname\r\n";
             break;
-        case 405: // ERR_TOOMANYCHANNELS
-            message = ":" + server_name + " 405 " + nickname + " " + target + " :You have joined too many channels\r\n";
+		case ERR_INVITEONLYCHAN: // 473
+    		message = ":" + server_name + " 473 " + nickname + " " + target + " " + ":Cannot join channel (+i)\r\n";
+    		break;
+		case ERR_KEYSET: // 467
+    		message = ":" + server_name + " 467 " + nickname + " " + target + " " + ":Channel key already set\r\n";
+    		break;
+		case ERR_NEEDMOREPARAMS: // 461
+		    message = ":" + server_name + " 461 " + nickname + " " + target + " " + ":Not enough parameters\r\n";
+		    break;
+		case ERR_NICKCOLLISION: // 436
+		    message = ":" + server_name + " 436 " + nickname + " " + target + " " + ":Nickname collision KILL\r\n";
+		    break;
+		case ERR_NICKNAMEINUSE: // 433
+    		message = ":" + server_name + " 433 " + nickname + " " + target + " " + ":Nickname is already in use\r\n";
+    		break;
+		case ERR_NOCHANMODES: // 477
+    		message = ":" + server_name + " 477 " + nickname + " " + target + " " + ":Channel doesn't support modes\r\n";
+    		break;
+		case ERR_NONICKNAMEGIVEN: // 431
+		    message = ":" + server_name + " 431 " + nickname + " " + ":No nickname given\r\n";
+		    break;
+		case ERR_NORECIPIENT: // 411
+		    message = ":" + server_name + " 411 " + nickname + " " + ":No recipient given\r\n";
+		    break;
+		case ERR_NOSUCHCHANNEL: // 403
+		    message = ":" + server_name + " 403 " + nickname + " " + target + " " + ":No such channel\r\n";
+		    break;
+		case ERR_NOSUCHNICK: // 401
+		    message = ":" + server_name + " 401 " + nickname + " " + target + " " + ":No such nick/channel\r\n";
+		    break;
+		case ERR_NOTEXTTOSEND: // 412
+		    message = ":" + server_name + " 412 " + nickname + " " + ":No text to send\r\n";
+		    break;
+		case ERR_NOTONCHANNEL: // 442
+    		message = ":" + server_name + " 442 " + nickname + " " + target + " " + ":You're not on that channel\r\n";
+    		break;
+		case ERR_NOTOPLEVEL: // 413
+		    message = ":" + server_name + " 413 " + nickname + " " + target + " " + ":No toplevel domain specified\r\n";
+		    break;
+		case ERR_TOOMANYTARGETS: // 407
+    		message = ":" + server_name + " 407 " + nickname + " " + target + " " + ":Too many recipients. No message delivered\r\n";
+    		break;
+		case ERR_UNKNOWNMODE: // 472
+		    message = ":" + server_name + " 472 " + nickname + " " + target + " " + ":Unknown mode char to me\r\n";
+		    break;
+		case ERR_USERNOTINCHANNEL: // 441
+		    message = ":" + server_name + " 441 " + nickname + " " + target + " " + ":They aren't on that channel\r\n";
+		    break;
+		case ERR_USERONCHANNEL: // 443
+    		message = ":" + server_name + " 443 " + nickname + " " + target + " " + ":User is already on that channel\r\n";
+    		break;
+		case RPL_CHANNELMODEIS: // 324
+            message = ":" + server_name + " 324 " + nickname + " " + target + " " + ":Channel mode is " + additionalInfo + "\r\n";
             break;
-        case 407: // ERR_TOOMANYTARGETS
-            message = ":" + server_name + " 407 " + nickname + " " + target + " :Duplicate recipients. No message delivered\r\n";
+        case RPL_INVITING: // 341
+            message = ":" + server_name + " 341 " + nickname + " " + target + " " + ":Inviting\r\n";
             break;
-        case 437: // ERR_UNAVAILRESOURCE
-            message = ":" + server_name + " 437 " + nickname + " " + target + " :Nick/channel is temporarily unavailable\r\n";
+        case RPL_NOTOPIC: // 331
+            message = ":" + server_name + " 331 " + nickname + " " + target + " " + ":No topic is set\r\n";
             break;
-        case 472: // ERR_UNKNOWNMODE
-            message = ":" + server_name + " 472 " + nickname + " " + target + " :Unknown mode char to me\r\n";
+        case RPL_TOPIC: // 332
+            message = ":" + server_name + " 332 " + nickname + " " + target + " " + additionalInfo + " " + ":Topic\r\n";
             break;
-        case 441: // ERR_USERNOTINCHANNEL
-            message = ":" + server_name + " 441 " + nickname + " " + target + " :They aren't on that channel\r\n";
-            break;
-        case 443: // ERR_USERONCHANNEL
-            message = ":" + server_name + " 443 " + nickname + " " + target + " :User is already on that channel\r\n";
-            break;
-        case 414: // ERR_WILDTOPLEVEL
-            message = ":" + server_name + " 414 " + nickname + " " + target + " :Wildcard in toplevel domain\r\n";
-            break;
-        case 301: // RPL_AWAY
-            message = ":" + server_name + " 301 " + nickname + " " + target + " :<away message>\r\n";
-            break;
-        case 367: // RPL_BANLIST
-            message = ":" + server_name + " 367 " + nickname + " " + target + " :<ban mask>\r\n";
-            break;
-        case 324: // RPL_CHANNELMODEIS
-            message = ":" + server_name + " 324 " + nickname + " " + target + " :<modes>\r\n";
-            break;
-        case 368: // RPL_ENDOFBANLIST
-            message = ":" + server_name + " 368 " + nickname + " " + target + " :End of channel ban list\r\n";
-            break;
-        case 349: // RPL_ENDOFEXCEPTLIST
-            message = ":" + server_name + " 349 " + nickname + " " + target + " :End of channel exception list\r\n";
-            break;
-        case 347: // RPL_ENDOFINVITELIST
-            message = ":" + server_name + " 347 " + nickname + " " + target + " :End of channel invite list\r\n";
 	}
 	return (message);
 }
