@@ -47,6 +47,6 @@ extern std::string server_name;
 #define RPL_TOPIC             332
 
 const std::string& handleResponse(const std::string& nickname, int responseCode, \
-		const std::string& target = "", const std::string& additionalInfo = "");
-const std::string& privateMessage(const std::string& nickname, \
+		const std::string& target, const std::string& additionalInfo);
+const std::string& privateMessage(Client *client, \
 		const std::string& channel_name, const std::string& message);

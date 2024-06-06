@@ -3,8 +3,10 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-const std::string& privateMessage(const std::string& nickname, const std::string& channel_name, \
+const std::string& privateMessage(Client *client, const std::string& channel_name, \
 			const std::string& message) {
+	//:닉네임!유저명@호스트명 PRIVMSG 보내는_채널이름 :전송할_메시지
+	std::string nickname = client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
 	return (":" + nickname + " PRIVMSG " + channel_name + " :" + message);
 }
 

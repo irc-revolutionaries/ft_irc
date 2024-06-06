@@ -23,14 +23,14 @@ int	main(int argc, char **argv) {
 		for (int i = 0; i < new_events; ++i) {
 			curr_event = &event_list[i];
 			if (curr_event->flags & EV_ERROR) {
-				if (curr_event->ident == server.getFd())
+				if (curr_event->ident == (unsigned long)(server.getFd()))
 					exitMessage("server socket error");
 				else {
 					std::cerr << "client socket error" << "\n";
 					server.disconnectClient(curr_event->ident);
 				}
 			} else if (curr_event->filter == EVFILT_READ) {
-				if (curr_event->ident == server.getFd())
+				if (curr_event->ident == (unsigned long)(server.getFd()))
 					server.addClient(change_list);
 				else if (server.getClientList().find(curr_event->ident) != \
 							server.getClientList().end())
