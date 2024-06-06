@@ -26,6 +26,7 @@ public :
 	void	quit(Server& server, Client* client);
 	void	privmsg(Server& server, Client* client);
 	void	notice(Server& server, Client* client);
+	void	mode(Server& server, Client* client);
 
 private :
 	std::vector <std::string> _cmdlist;

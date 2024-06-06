@@ -14,6 +14,10 @@ extern std::string server_name;
 #define EVENT_MAX	64
 #define MAX_BUF		512
 
+//Command
+#define	PRIVMSG	1
+#define	NICK	2
+
 //Error replies
 #define ERR_ALREADYREGISTRED  462
 #define ERR_BADCHANMASK       476
@@ -47,6 +51,6 @@ extern std::string server_name;
 #define RPL_TOPIC             332
 
 const std::string& handleResponse(const std::string& nickname, int responseCode, \
-		const std::string& target = "", const std::string& additionalInfo = "");
-const std::string& privateMessage(const std::string& nickname, \
-		const std::string& channel_name, const std::string& message);
+		const std::string& target, const std::string& additionalInfo);
+const std::string& messageFormat(int cmd_code, Client *client, const std::string& target, \
+			const std::string& additionalInfo);

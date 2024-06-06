@@ -1,16 +1,19 @@
 CXX		=	c++
 FLAGS	=	-Wall -Wextra -Werror -std=c++98
 SRCS	=	main.cpp \
+			Server.cpp \
 			Channel.cpp \
 			Client.cpp \
 			Command.cpp \
-			Server.cpp
+			handleresponse.cpp \
+			Bonus.cpp
 OBJS	=	$(SRCS:.cpp=.o)
 HEADER	=	essential.hpp \
+			Server.hpp \
 			Channel.hpp \
 			Client.hpp \
 			Command.hpp \
-			Server.hpp
+			Bonus.hpp
 NAME	=	ircserv
 
 all : $(NAME)

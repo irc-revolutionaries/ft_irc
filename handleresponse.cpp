@@ -3,9 +3,22 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-const std::string& privateMessage(const std::string& nickname, const std::string& channel_name, \
-			const std::string& message) {
-	return (":" + nickname + " PRIVMSG " + channel_name + " :" + message);
+const std::string& messageFormat(int cmd_code, Client *client, const std::string& target = "", \
+			const std::string& additionalInfo = "") {
+	std::string	message;
+
+	//:닉네임!유저명@호스트명 PRIVMSG 보내는_채널이름 :전송할_메시지
+	std::string nickname = client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
+	switch (cmd_code)
+	{
+	case PRIVMSG:
+		message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo;
+		break;
+	case NICK:
+		message = ":" + server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc world," + client->getNickname() + ".";
+		break;
+	}
+	return (message);
 }
 
 const std::string& handleResponse(const std::string& nickname, int responseCode, \
