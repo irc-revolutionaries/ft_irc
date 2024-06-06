@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+class Client;
+
 extern std::string server_name;
 
 #define EVENT_MAX	64
@@ -49,6 +51,9 @@ extern std::string server_name;
 #define RPL_INVITING          341
 #define RPL_NOTOPIC           331
 #define RPL_TOPIC             332
+#define	RPL_NAMREPLY		  353
+#define RPL_ENDOFNAMES		  366
+
 
 const std::string& handleResponse(const std::string& nickname, int responseCode, \
 		const std::string& target, const std::string& additionalInfo);
