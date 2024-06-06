@@ -19,6 +19,9 @@ public :
 	void	errorQuit(Client* request_client);
 	void	broadcast(const std::string& message);
 
+	// 그 외의 구현
+	std::string answerTopic();
+
 	// 채널 옵션 설정 함수들
 	int	plusOptI(Client* request_client);
 	int	plusOptT(Client* request_client);
