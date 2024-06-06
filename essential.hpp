@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+extern std::string server_name;
+
 #define EVENT_MAX	64
 #define MAX_BUF		512
 
@@ -44,3 +46,5 @@
 #define RPL_INVITING          341
 #define RPL_NOTOPIC           331
 #define RPL_TOPIC             332
+
+const std::string& handleResponse(Client *client, int responseCode, const std::string& target = "", const std::string& additionalInfo = "");

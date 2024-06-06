@@ -9,6 +9,8 @@ Server::Server(const char* port, const char* password) {
 			exitMessage("port number error");
 	_port = atoi(port);
 	_password = password;
+	_name = "ft_irc_server";
+	server_name = _name;
 }
 
 Server::~Server() {
@@ -23,9 +25,9 @@ Server::~Server() {
 const std::map<std::string, Channel *>&	Server::getChannelList() const { return (_channel_list); }
 const std::map<int, Client *>&			Server::getClientList() const { return (_client_list); }
 const std::string&	Server::getPassword() const { return (_password); }
-const int Server::getPort() const { return (_port); }
-const int Server::getFd() const { return (_fd); }
-const int Server::getKq() const { return (_kq); }
+int Server::getPort() const { return (_port); }
+int Server::getFd() const { return (_fd); }
+int Server::getKq() const { return (_kq); }
 
 //서버 소켓 설정
 void	Server::setServer(std::vector<struct kevent>& change_list) {
@@ -109,7 +111,7 @@ void	Server::disconnectClient(int client_fd) {
 	close(client_fd); //연결 종료
 	for (int i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
-		if (_channel_list[joined_channel[i]]->get_user_list().size() == 0) {
+		if (_channel_list[joined_channel[i]]->getUserList().size() == 0) {
 			delete _channel_list[joined_channel[i]];
 			_channel_list.erase(joined_channel[i]);
 		}
