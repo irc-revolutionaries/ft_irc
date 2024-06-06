@@ -16,7 +16,7 @@ public :
 	void	setNick(bool check);
 	void	setUser(bool check);
 
-	const int	getFd() const;
+	int	getFd() const;
 	const std::string&	getNickname() const;
 	const std::string&	getUsername() const;
 	const std::string&	getRealname() const;

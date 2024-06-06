@@ -14,9 +14,9 @@ public :
 	const std::map<std::string, Channel *>&	getChannelList() const;
 	const std::map<int, Client *>&			getClientList() const;
 	const std::string&		getPassword() const;
-	const int getPort() const;
-	const int getFd() const;
-	const int getKq() const;
+	int getPort() const;
+	int getFd() const;
+	int getKq() const;
 
 	void	setServer(std::vector<struct kevent>& change_list);
 	void	addClient(std::vector<struct kevent>& change_list);
@@ -33,6 +33,7 @@ private :
 	struct sockaddr_in	_server_addr;
 	std::string	_password;
 	std::string _command;
+	std::string	_name;
 	int	_port;
 	int	_fd;
 	int	_kq;
