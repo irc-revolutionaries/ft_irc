@@ -51,7 +51,7 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	std::cout << "bind address\n";
 	
 	//소켓을 수신 대기 상대로 만들기
-	if (listen(_fd, 10) == -1)
+	if (listen(_fd, 5) == -1)
 		exitMessage("listen error");
 	fcntl(_fd, F_SETFL, O_NONBLOCK); //소켓 non-blocking 설정
 	
@@ -62,6 +62,7 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//kevent 저장 벡터, 이벤트를 감시할 식별자, 이벤트 필터, 이벤트 플래그(새로운 이벤트 추가, 이벤트 활성화)
 	std::cout << "kqueue create\n";
 	changeEvents(change_list, _fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	std::cout << "Server started\n";
 }
 
 void	Server::addClient(std::vector<struct kevent>& change_list) {

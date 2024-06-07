@@ -3,8 +3,6 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-std::string g_server_name;
-
 const std::string messageFormat(int cmd_code, Client *client, const std::string& target, \
 			const std::string& additionalInfo) {
 	std::string	message;
