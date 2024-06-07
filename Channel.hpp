@@ -23,7 +23,7 @@ public :
 	void	plusOptI(Client* request_client);
 	void	plusOptT(Client* request_client);
 	void	plusOptK(Client* request_client, const std::string& key);
-	void	plusOptL(Client* request_client, const int limit);
+	void	plusOptL(Client* request_client, std::size_t limit);
 	void	plusOptO(Client* request_client, Client* target_client);
 
 	// 채널 옵션 제거 함수들
@@ -53,5 +53,5 @@ private :
 	bool		_opt_i;
 	bool		_opt_t;
 	std::string	_opt_k;
-	int			_opt_l;
+	std::size_t	_opt_l;
 };

@@ -14,7 +14,7 @@
 
 class Client;
 
-extern std::string server_name;
+extern std::string g_server_name;
 
 #define EVENT_MAX	64
 #define MAX_BUF		512
@@ -60,7 +60,7 @@ extern std::string server_name;
 #define RPL_ENDOFNAMES			366
 
 
-const std::string& handleResponse(const std::string& nickname, int responseCode, \
+const std::string handleResponse(const std::string& nickname, int responseCode, \
 		const std::string& target = "", const std::string& additionalInfo = "");
-const std::string& messageFormat(int cmd_code, Client *client, const std::string& target = "", \
+const std::string messageFormat(int cmd_code, Client *client, const std::string& target = "", \
 			const std::string& additionalInfo = "");

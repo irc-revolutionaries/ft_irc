@@ -2,6 +2,7 @@
 
 #include "essential.hpp"
 
+
 class Client;
 class Channel;
 class Command;

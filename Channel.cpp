@@ -1,4 +1,3 @@
-#include "essential.hpp"
 #include "Channel.hpp"
 #include "Client.hpp"
 
@@ -65,7 +64,7 @@ void	Channel::plusOptK(Client* request_client, const std::string& key) {
 }
 
 // l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
-void	Channel::plusOptL(Client* request_client, int limit) {
+void	Channel::plusOptL(Client* request_client, std::size_t limit) {
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
