@@ -333,7 +333,7 @@ void	Command::mode(Server& server, Client* client) {
 		return ;
 	}
 	bool sign = opt[pos] == '+' ? true : false;
-	int	order_params = 2;
+	std::size_t	order_params = 2;
 	for (size_t i = pos; i < opt.size(); ++i) {
 		if (!(opt[i] == 'i' || opt[i] == 't' || opt[i] == 'k' 
 			|| opt[i] == 'o' || opt[i] == 'l')) {
@@ -372,7 +372,8 @@ void	Command::mode(Server& server, Client* client) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 					continue ;
 				}
-				channel_list[channel_name]->plusOptL(client, std::atoi(_params[order_params].c_str()));
+				long nb = std::atoi(_params[order_params].c_str());
+				channel_list[channel_name]->plusOptL(client, nb);
 				++order_params;
 			} else {
 				// ERR_UNKNOWNMODE

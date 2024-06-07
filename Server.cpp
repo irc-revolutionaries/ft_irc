@@ -3,14 +3,18 @@
 #include "Channel.hpp"
 #include "Command.hpp"
 
+std::string g_server_name;
+
 Server::Server(const char* port, const char* password) {
 	for (int i = 0; port[i]; ++i)
 		if (!isdigit(port[i]))
 			exitMessage("port number error");
 	_port = atoi(port);
+	if (_port < 1024 || _port > 49151)
+		exitMessage("Port number error\n Please input 1024 ~ 49151");
 	_password = password;
 	_name = "ft_irc_server";
-	server_name = _name;
+	g_server_name = _name;
 }
 
 Server::~Server() {
@@ -33,6 +37,7 @@ int		Server::getKq() const { return (_kq); }
 void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//소켓 생성
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
+	std::cout << "socket create\n";
 	if (int(_fd) == -1)
 		exitMessage("socket error\n" + std::string(strerror(errno)));
 	
@@ -43,6 +48,7 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//소켓에 주소 할당
 	if (bind(_fd, (struct sockaddr *)(&_server_addr), sizeof(_server_addr)) == -1)
 		exitMessage("bind error");
+	std::cout << "bind address\n";
 	
 	//소켓을 수신 대기 상대로 만들기
 	if (listen(_fd, 10) == -1)
@@ -54,6 +60,7 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	if (_kq == -1)
 		exitMessage("kqueue error");
 	//kevent 저장 벡터, 이벤트를 감시할 식별자, 이벤트 필터, 이벤트 플래그(새로운 이벤트 추가, 이벤트 활성화)
+	std::cout << "kqueue create\n";
 	changeEvents(change_list, _fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 }
 

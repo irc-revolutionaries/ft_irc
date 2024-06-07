@@ -15,6 +15,7 @@ int	main(int argc, char **argv) {
 	int	new_events;
 
 	server.setServer(change_list);
+	signal(SIGPIPE, SIG_IGN);
 	while (true) {
 		new_events = kevent(server.getFd(), &change_list[0], change_list.size(), 
 				event_list, EVENT_MAX, NULL);
