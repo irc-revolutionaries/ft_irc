@@ -5,15 +5,15 @@
 #include <sstream>
 
 Command::Command() {
-	_cmdlist.push_back("PASS");//o
-	_cmdlist.push_back("NICK");//o
-	_cmdlist.push_back("USER");//0
-	_cmdlist.push_back("JOIN");//o 아마
-	_cmdlist.push_back("INVITE");//o
-	_cmdlist.push_back("KICK");//o
-	_cmdlist.push_back("TOPIC");//o
-	_cmdlist.push_back("QUIT");//서버 나가면서 메세지 뱉기
-	_cmdlist.push_back("PRIVMSG");//o
+	_cmdlist.push_back("PASS");
+	_cmdlist.push_back("NICK");
+	_cmdlist.push_back("USER");
+	_cmdlist.push_back("JOIN");
+	_cmdlist.push_back("INVITE");
+	_cmdlist.push_back("KICK");
+	_cmdlist.push_back("TOPIC");
+	_cmdlist.push_back("QUIT");
+	_cmdlist.push_back("PRIVMSG");
 	_cmdlist.push_back("MODE");
 }
 
@@ -45,42 +45,58 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 					privmsg(server, client);
 				else if (_cmd == "MODE")
 					mode(server, client);
+				// else {
+				// 	client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+				// }
 			}
 			else {
-				client->setMessage(handleResponse("*", 451));
+				client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
 				return ;
 			}
 		}
 		else {
 			// ERR_NOTREGISTERED (451)
-			client->setMessage(handleResponse("*", 451));
+			client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
 			return ;
 		}
 	}
 	else {// pass 필요
 		//pass를 입력안해서nick이 없는데 어떻게 response?
 		// 정보가 없을때 nickname 을 *로 표시
-		client->setMessage(handleResponse("*", 451));
+		client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
 		return ;
 	}
 }
 
 bool Command::parseCmd(Client* client, const std::string& msg) {
 	_params.clear();
+	_cmd = "";
 	std::istringstream ss(msg);
 	std::string buf;
+	std::string tmp1;
+	std::string col;
+	(void)client;
 
-	std::getline(ss, _cmd, ' ');//command
+	std::getline(ss, tmp1, ':');//command
+	std::getline(ss, col);//command
+	std::istringstream col_ss(tmp1);
+	std::getline(col_ss, _cmd, ' ');//_cmd
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
 		//421
 		if (client->getNick())
-			client->setMessage(handleResponse(client->getNickname(), 421));
+			client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
 		else 
-			client->setMessage(handleResponse("*", 421));//ERR_UNKNOWNCOMMAND
+			client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND));//ERR_UNKNOWNCOMMAND
 		return false;
 	}
-	while (std::getline(ss, buf)) {
+	while (std::getline(col_ss, buf, ' ')) {
 		_params.push_back(buf);
+	}
+	if (col != "")
+		_params.push_back(col);
+	std::cout << "cmd : " << _cmd <<'\n';
+	for (int i = 0; i < (int)_params.size(); ++i) {
+		std::cout << "params " << i << " : "<< _params[i] << std::endl;
 	}
 	return true;
 }
@@ -95,8 +111,10 @@ void Command::pass(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
 		return ;
 	}
-	if (_params[0] == server.getPassword())
+	if (_params[0] == server.getPassword()) {
+		std::cout<< "PASS compladsd\n";
 		client->setPass(true);
+	}
 }
 
 void Command::nick(Server& server, Client* client) {
@@ -115,7 +133,7 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
 	}
-	for (size_t i = 0; nickname.size(); ++i) {
+	for (size_t i = 0; i < nickname.size(); ++i) {
 		if (nickname[i] == ' ' || nickname[i] == ',' || nickname[i] == '.' || nickname[i] == '*' ||
 			nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') {
 			client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
@@ -131,7 +149,8 @@ void Command::nick(Server& server, Client* client) {
 	}
 	client->setNick(true);
 	client->setNickname(nickname);
-	client->setMessage("Your nickname has been set to " + nickname);// <- 어떻게? 
+	std::cout<< "NICK complaadsadsd\n";
+	// client->setMessage(messageFormat(USER, client));
 }
 
 void Command::user(Client* client) {
@@ -149,6 +168,8 @@ void Command::user(Client* client) {
 	client->setHostname(_params[1]);
 	client->setServername(_params[2]);
 	client->setRealname(_params[3]);
+	client->setMessage(messageFormat(USER, client));
+	std::cout<< "USER complaadsadsd\n";
 }
 
 void Command::join(Server& server, Client* client) {
@@ -373,6 +394,10 @@ void	Command::mode(Server& server, Client* client) {
 					continue ;
 				}
 				long nb = std::atoi(_params[order_params].c_str());
+				if (nb < 0) {
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[order_params]));
+					return ;
+				}
 				channel_list[channel_name]->plusOptL(client, nb);
 				++order_params;
 			} else {

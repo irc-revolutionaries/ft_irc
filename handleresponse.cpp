@@ -14,8 +14,8 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 	case PRIVMSG:
 		message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo;
 		break;
-	case NICK:
-		message = ":" + g_server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc world," + client->getNickname() + ".";
+	case USER:
+		message = ":" + g_server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc world, " + nickname + "\r\n";
 		break;
 	}
 	return (message);
