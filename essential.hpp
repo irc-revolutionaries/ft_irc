@@ -58,5 +58,5 @@ extern std::string server_name;
 
 const std::string& handleResponse(const std::string& nickname, int responseCode, \
 		const std::string& target = "", const std::string& additionalInfo = "");
-const std::string& messageFormat(int cmd_code, Client *client, const std::string& target, \
-			const std::string& additionalInfo);
+const std::string& messageFormat(int cmd_code, Client *client, const std::string& target = "", \
+			const std::string& additionalInfo = "");

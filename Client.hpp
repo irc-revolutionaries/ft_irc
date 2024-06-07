@@ -15,6 +15,9 @@ public :
 	void	setPass(bool check);
 	void	setNick(bool check);
 	void	setUser(bool check);
+	bool	getPass() const;
+	bool	getNick() const;
+	bool	getUser() const;
 
 	int	getFd() const;
 	const std::string&	getNickname() const;

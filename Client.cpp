@@ -13,14 +13,16 @@ void	Client::setPass(bool check) { this->_pass = check; }
 void	Client::setNick(bool check) { this->_nick = check; }
 void	Client::setUser(bool check) { this->_user = check; }
 
-const int	Client::getFd() const { return (_fd); }
+int	Client::getFd() const { return (_fd); }
 const std::string&	Client::getNickname() const { return (_nickname); }
 const std::string&	Client::getUsername() const { return (_username); }
 const std::string&	Client::getRealname() const { return (_realname); }
 const std::string&	Client::getHostname() const { return (_hostname); }
 const std::string&	Client::getServername() const { return (_servername); }
 const std::vector<std::string>&	Client::getMessage() const { return (_message); }
-
+bool	Client::getPass() const { return (_pass); }
+bool	Client::getNick() const { return (_nick); }
+bool	Client::getUser() const { return (_user); }
 void Client::clearMessage() {
 	_message.clear();
 }
