@@ -22,6 +22,7 @@ extern std::string g_server_name;
 //Command
 #define	PRIVMSG	1
 #define	NICK	2
+#define	USER	3
 
 //Error replies
 #define ERR_ALREADYREGISTRED	462

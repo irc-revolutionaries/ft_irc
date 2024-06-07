@@ -99,11 +99,10 @@ void    Server::makeCommand(int ident) {
 			std::istringstream iss(_command);
 			std::string tmp;
 			if (_command.find('\n') != std::string::npos)
-				while (std::getline(iss, tmp, '\n'))
+				while (std::getline(iss, tmp, '\n')) {
+					tmp.replace(tmp.find("\r"), tmp.length(), "");
 					cmd.handleCmd(*this, _client_list[ident], tmp);
-			else
-				while (std::getline(iss, tmp, '\r'))
-					cmd.handleCmd(*this, _client_list[ident], tmp);
+				}
             _command = "";
         }
     }
