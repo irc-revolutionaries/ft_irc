@@ -116,6 +116,12 @@ const std::string& handleResponse(const std::string& nickname, int responseCode,
         case RPL_ENDOFNAMES: //366
             message = ":" + server_name + " 366 " + nickname + " " + target + " " + ":End of /NAMES list\r\n";
             break;
+		case ERR_UNKNOWNCOMMAND: //421
+            message = ":" + server_name + " 421 " + nickname + " " + target + " " + ":Unknown command\r\n";
+            break;
+        case ERR_NOTREGISTERED: //451
+            message = ":" + server_name + " 451 " + nickname + " :You have not registered\r\n";
+            break;
 	}
 	return (message);
 }
