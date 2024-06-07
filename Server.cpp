@@ -82,21 +82,31 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 	_client_list[client_fd] = new_client;
 }
 
-void	Server::makeCommand(int ident) {
-	Command	cmd;
-	char	buf[MAX_BUF];
-	ssize_t	n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
+void    Server::makeCommand(int ident) {
+    Command cmd;
+    char    buf[MAX_BUF];
+    ssize_t n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
 
-	if (n < 0)
-		std::cerr << "client read error\n";
-	else {
-		buf[n] = '\0';
-		_command += buf;
-		if (_command.find('\n') != 0 || _command.find('\r')) {
-			cmd.handleCmd(*this, _client_list[ident], _command);
-			_command = "";
-		}
-	}
+    if (n < 0)
+        std::cerr << "client read error\n";
+    else {
+        if (n < 512)
+            buf[n] = '\0';
+        else
+            buf[n-1] = '\0';
+        _command += buf;
+        if (_command.find('\n') != std::string::npos || _command.find('\r') != std::string::npos) {
+			std::istringstream iss(_command);
+			std::string tmp;
+			if (_command.find('\n') != std::string::npos)
+				while (std::getline(iss, tmp, '\n'))
+					cmd.handleCmd(*this, _client_list[ident], tmp);
+			else
+				while (std::getline(iss, tmp, '\r'))
+					cmd.handleCmd(*this, _client_list[ident], tmp);
+            _command = "";
+        }
+    }
 }
 
 void	Server::sendMessage(int ident) {
