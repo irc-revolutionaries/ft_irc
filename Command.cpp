@@ -175,7 +175,7 @@ void Command::user(Client* client) {
 	client->setMessage(messageFormat(RPL_WELCOME, client));
 	client->setMessage(messageFormat(RPL_YOURHOST, client));
 	client->setMessage(messageFormat(RPL_CREATED, client, "Mon Jan 1 00:00:00 2020"));
-	client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 o itklo"));
+	client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 x itklo"));
 	std::cout<< "USER complaadsadsd\n";
 }
 
@@ -340,11 +340,10 @@ void	Command::mode(Server& server, Client* client) {
 	if (_params.size() < 1)
 		std::cerr << "invalid numbers of params\n";
 	//MODE <channel>일떄 answerMode()
-	if (_params.size() == 2) {
-		if (channel_list.find(_params[1]) != channel_list.end())
-			channel_list[_params[1]]->answerMode(client);
+	if (_params.size() == 1) {
+		if (channel_list.find(_params[0]) != channel_list.end())
+			channel_list[_params[0]]->answerMode(client);
 		else {
-			//NOSUCHCHANNEL 403 <-맞나?
 			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[1]));
 			return ;
 		}

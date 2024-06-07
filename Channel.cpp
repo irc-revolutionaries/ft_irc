@@ -22,6 +22,7 @@ bool Channel::checkAuthority(Client* client) {
 
 // i 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptI(Client* request_client) {
+	std::cout << "i option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -226,7 +227,7 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 	_invite_list.push_back(target_client->getNickname());
 	std::string temp;
 	// :<inviter_nick> INVITE <invitee_nick> <channel_name>
-	temp = ":" + request_client->getNickname() + " INVITE " + target_client->getNickname() + " " + _name;
+	temp = ":" + request_client->getNickname() + " INVITE " + target_client->getNickname() + " " + _name + "\r\n";
 	target_client->setMessage(temp);
 	broadcast(handleResponse(request_client->getNickname(), RPL_INVITING));
 }
@@ -265,23 +266,29 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 		return ;
 	}
 	if (topic == "") {
+		std::cout << "토픽 확인!!" << std::endl;
 		if (_topic == "") {
+			std::cout << "->토픽 없음!!" << std::endl;
 			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_NOTOPIC));
 			return ;
 		} else {
+			std::cout << "->토픽 있음!!" << std::endl;
 			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_TOPIC, _name, _topic));
 			return ;
 		}
 	} else {
+		std::cout << "토픽 설정!!" << std::endl;
 		if (_opt_t == true && checkAuthority(request_client) == false) {
+			std::cout << "->토픽 설정 실패!!" << std::endl;
 			request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
 			return ;
 		} else {
 			// :<nick>!<user>@<host> TOPIC <channel> :<new topic>
+			std::cout << "->토픽 설정 성공!!" << std::endl;
 			std::string temp;
 			temp = ":" + request_client->getNickname() + "!" + request_client->getUsername() \
 					+ "@" + request_client->getHostname() + " TOPIC " + _name + " :" \
-					+ topic;
+					+ topic + "\r\n";
 			broadcast(temp);
 			_topic = topic;
 			return ;
@@ -298,6 +305,7 @@ void	Channel::quit(Client* request_client) {
 		temp = request_client->getNickname();
 		temp += " has quit ";
 		temp += _name;
+		temp += "\r\n";
 		for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
 			i->first->setMessage(temp);
 	}
