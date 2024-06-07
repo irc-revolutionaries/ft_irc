@@ -24,13 +24,13 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 	//pass, nick, user 순서대로 됐는지 분기 쪼개야됨
 	if (_cmd == "PASS")
 		pass(server, client);
-	if (client->getPass()) { //Pass true 여야 동작가능 
+	else if (client->getPass()) { //Pass true 여야 동작가능 
 		if (_cmd == "NICK")
 			nick(server, client);
-		if (client->getNick()) {
+		else if (client->getNick()) {
 			if (_cmd == "USER")
 				user(client);
-			else if (client->getNick()) {
+			else if (client->getUser()) {
 				if (_cmd == "JOIN")
 					join(server, client);
 				else if (_cmd == "INVITE")
@@ -45,9 +45,9 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 					privmsg(server, client);
 				else if (_cmd == "MODE")
 					mode(server, client);
-				// else {
-				// 	client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
-				// }
+				else {
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+				}
 			}
 			else {
 				client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
@@ -115,6 +115,9 @@ void Command::pass(Server& server, Client* client) {
 		std::cout<< "PASS compladsd\n";
 		client->setPass(true);
 	}
+	else {
+		client->setMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
+	}
 }
 
 void Command::nick(Server& server, Client* client) {
@@ -127,8 +130,8 @@ void Command::nick(Server& server, Client* client) {
 		return ;
 	}
 	std::string nickname = _params[0];
-	if (client->getNickname() == nickname)//같은닉네임으로 변경시도시 가만히
-		return ;
+	// if (client->getNickname() == nickname)//같은닉네임으로 변경시도시 가만히
+	// 	return ;
 	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&') {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
@@ -141,16 +144,17 @@ void Command::nick(Server& server, Client* client) {
 		}
 	}
 	//중복 닉네임 고려 어떻게?
-	if (nickname.length() > 9)
+	if (nickname.length() > 9) {
+		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
-	if (!server.findClient(nickname)) {
-		// 중복닉 433ERR_NICKNAMEINUSE
+	}
+	if (server.findClient(nickname)) {
 		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
+		return ;
 	}
 	client->setNick(true);
 	client->setNickname(nickname);
 	std::cout<< "NICK complaadsadsd\n";
-	// client->setMessage(messageFormat(USER, client));
 }
 
 void Command::user(Client* client) {
@@ -168,7 +172,10 @@ void Command::user(Client* client) {
 	client->setHostname(_params[1]);
 	client->setServername(_params[2]);
 	client->setRealname(_params[3]);
-	client->setMessage(messageFormat(USER, client));
+	client->setMessage(messageFormat(RPL_WELCOME, client));
+	client->setMessage(messageFormat(RPL_YOURHOST, client));
+	client->setMessage(messageFormat(RPL_CREATED, client, "Mon Jan 1 00:00:00 2020"));
+	client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 o itklo"));
 	std::cout<< "USER complaadsadsd\n";
 }
 
@@ -212,7 +219,8 @@ void Command::join(Server& server, Client* client) {
 			channel_list[channel_name]->join(client, channel_key);
 		else{
 			server.createChannel(client, channel_name);//못찾으면 채널생성,
-			channel_list[channel_name]->join(client, channel_key);
+			std::map<std::string, Channel *> channel_list1 = server.getChannelList();
+			channel_list1[channel_name]->join(client, channel_key);
 		}
 	}
 }

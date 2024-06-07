@@ -15,7 +15,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo;
 			break;
 		case RPL_WELCOME: // 001
-            message = ":" + g_server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc " + nickname + "!\r\n";
+            message = ":" + g_server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc " + nickname + "\r\n";
             break;
         case RPL_YOURHOST: // 002
             message = ":" + g_server_name + " 002 " + client->getNickname() + " :Your host is " + g_server_name + "\r\n";
@@ -24,7 +24,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
             message = ":" + g_server_name + " 003 " + client->getNickname() + " :This server was created " + target + "\r\n";
             break;
         case RPL_MYINFO: // 004
-            message = ":" + g_server_name + " 004 " + client->getNickname() + " " + g_server_name + " " + additionalInfo + "\r\n";
+            message = ":" + g_server_name + " 004 " + client->getNickname() + " " + g_server_name + " " + target + "\r\n";
             break;
 	}
 	return (message);
