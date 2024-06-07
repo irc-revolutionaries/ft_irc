@@ -116,6 +116,7 @@ void	Server::sendMessage(int ident) {
 			ssize_t	n = send(ident, (msg_vec[i] + "\n\r").c_str(), msg_vec[i].length(), 0);
 			if (n < 0)
 				exitMessage("send error");
+			it->second->clearMessage();
 		}
 	}
 }
