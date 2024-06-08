@@ -261,8 +261,8 @@ void	Command::kick(Server& server, Client* client){
 	std::string channel_name = _params[0];
 	std::string target_name = _params[1];
 	if (_params.size() >= 3) {
-		std::string command = _params[2];
-		channel_list[channel_name]->kick(client, server.findClient(target_name), command);
+		std::string comment = _params[2];
+		channel_list[channel_name]->kick(client, server.findClient(target_name), comment);
 	}
 	else
 		channel_list[channel_name]->kick(client, server.findClient(target_name), "");
@@ -319,7 +319,7 @@ void	Command::privmsg(Server& server, Client* client) {
 			else if (it == joined_channel.end())//채널은 존재하는데, 참여하지 않은 상태에서
 				client->setMessage(handleResponse(client->getNickname(), ERR_CANNOTSENDTOCHAN, receiver));
 			else
-				channel_list[receiver]->broadcast(messageFormat(PRIVMSG, client, receiver, msg));//여기에다가 포맷 맞춰서 보내기
+				channel_list[receiver]->broadcastWithoutClient(messageFormat(PRIVMSG, client, receiver, msg), client);//여기에다가 포맷 맞춰서 보내기
 		} else {//receiver가 client
 			Client* receive_client = server.findClient(receiver);
 			if (!receive_client)

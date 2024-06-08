@@ -17,6 +17,7 @@ public :
 	void	quit(Client* request_client);
 	void	errorQuit(Client* request_client);
 	void	broadcast(const std::string& message);
+	void	broadcastWithoutClient(const std::string& message, Client* client);
 	void	answerMode(Client* request_client);
 
 	// 채널 옵션 설정 함수들

@@ -244,7 +244,7 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOSUCHNICK));
 		return ;
 	}
 	// :<nick>!<user>@<host> KICK <channel> <user> :<comment>
@@ -254,9 +254,10 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 				+ target_client->getUsername();
 	if (reason != "")
 		temp += " :" + reason;
+	temp += "\r\n";
 	broadcast(temp);
 	_user_list.erase(it);
-	request_client->deleteJoinedChannel(_name);
+	target_client->deleteJoinedChannel(_name);
 }
 
 // topic 설정 성공하면 0, topic-protection mode인데 권한이 없으면 1 반환
@@ -322,6 +323,15 @@ void	Channel::errorQuit(Client* request_client) {
 void	Channel::broadcast(const std::string& message) {
 	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
 		i->first->setMessage(message);
+}
+
+// client를 제외하고 채널의 모든 클라이언트들에게 메세지를 보냄
+void	Channel::broadcastWithoutClient(const std::string& message, Client* client) {
+	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++) {
+		if (i->first != client) {
+			i->first->setMessage(message);
+		}
+	}
 }
 
 // 클라이언트 map getter

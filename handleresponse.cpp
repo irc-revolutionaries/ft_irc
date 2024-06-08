@@ -12,7 +12,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 	switch (cmd_code)
 	{
 		case PRIVMSG: //000
-			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo;
+			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo + "\r\n";
 			break;
 		case RPL_WELCOME: // 001
             message = ":" + g_server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc " + nickname + "\r\n";
