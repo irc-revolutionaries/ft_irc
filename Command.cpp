@@ -151,8 +151,12 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
 		return ;
 	}
-	client->setNick(true);
+	// if (client->getNick()) {
+		
+	// }
+	std::cout << client << '\n';
 	client->setNickname(nickname);
+	client->setNick(true);
 	client->setMessage(messageFormat(NICK, client, nickname));
 }
 
