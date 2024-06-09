@@ -14,7 +14,7 @@ public :
 	void	invite(Client* request_client, Client* target_client);
 	void	kick(Client* request_client, Client* target_client, const std::string& reason);
 	void	topic(Client* request_client, const std::string& topic);
-	void	quit(Client* request_client);
+	void	quit(Client* request_client, const std::string& message);
 	void	errorQuit(Client* request_client);
 	void	broadcast(const std::string& message);
 	void	broadcastWithoutClient(const std::string& message, Client* client);

@@ -229,6 +229,7 @@ void Channel::join(Client* new_client, const std::string& key) {
 	}
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_ENDOFNAMES, _name));
 	new_client->setJoinedChannel(_name);
+	broadcastWithoutClient(messageFormat(JOIN, new_client, _name), new_client);
 }
 
 // INVITE
@@ -321,17 +322,11 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 }
 
 // quit을 했을 때 유저를 제거하고 메세지 보냄
-void	Channel::quit(Client* request_client) {
+void	Channel::quit(Client* request_client, const std::string& message) {
 	std::map<Client *, bool>::iterator it = _user_list.find(request_client);
 	if (it != _user_list.end()) {
+		broadcastWithoutClient(messageFormat(QUIT, request_client, message), request_client);
 		_user_list.erase(it);
-		std::string temp;
-		temp = request_client->getNickname();
-		temp += " has quit ";
-		temp += _name;
-		temp += "\r\n";
-		for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
-			i->first->setMessage(temp);
 	}
 }
 
