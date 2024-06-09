@@ -7,7 +7,7 @@ class Client;
 
 class Channel {
 public :
-	Channel(const std::string& name, Client* first_client);
+	Channel(const std::string& name);
 
 	// command에서 호출 할 함수들
 	void	join(Client* new_client, const std::string& key);

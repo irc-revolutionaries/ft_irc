@@ -141,9 +141,10 @@ void	Server::disconnectClient(int client_fd) {
 }
 
 void	Server::createChannel(Client *first_client, std::string ch_name) {
+	(void)first_client;
 	std::pair<std::string, Channel *> channel_arg;
 	channel_arg.first = ch_name;
-	channel_arg.second = new Channel(ch_name, first_client);
+	channel_arg.second = new Channel(ch_name);
 	_channel_list.insert(channel_arg);
 }
 

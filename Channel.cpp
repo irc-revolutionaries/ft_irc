@@ -1,8 +1,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-Channel::Channel(const std::string& name, Client* first_client) : _name(name), _opt_i(false), _opt_t(false), _opt_l(0) {
-	_user_list.insert(std::pair<Client *, bool>(first_client, true));
+Channel::Channel(const std::string& name) : _name(name), _opt_i(false), _opt_t(false), _opt_l(0) {
 }
 
 // client가 채널에 있으면 true, 없으면 false 반환
@@ -50,7 +49,7 @@ void	Channel::plusOptT(Client* request_client) {
 
 // k 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptK(Client* request_client, const std::string& key) {
-	std::cout << "k option called ~~~" << std::endl;
+	std::cout << "+K+K+K+K+K+K" << key << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -59,11 +58,14 @@ void	Channel::plusOptK(Client* request_client, const std::string& key) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
-	if (_opt_k == "") {
+	if (_opt_k != "") {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_KEYSET));
 		return ;
 	}
 	_opt_k = key;
+	std::string temp;
+	temp = ":" + g_server_name + " MODE " + _name + " +k " + key + "\r\n";
+	broadcast(temp);
 }
 
 // l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
@@ -206,15 +208,26 @@ void Channel::join(Client* new_client, const std::string& key) {
 	broadcast(temp);
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_TOPIC, _name, _topic));
 	if (_user_list.size() > 0) {
-		temp = _user_list.begin()->first->getNickname();
+		if (_user_list.begin()->second == true) {
+			temp = "@" + _user_list.begin()->first->getNickname();
+		} else {
+			temp = _user_list.begin()->first->getNickname();
+		}
 		std::map<Client *, bool>::iterator it = _user_list.begin();
 		it++;
-		for (; it != _user_list.end(); it++)
-			temp += " " + it->first->getNickname();
+		for (; it != _user_list.end(); it++) {
+			if (it->second == true) {
+				temp += " @" + it->first->getNickname();
+			} else {
+				temp += " " + it->first->getNickname();
+			}
+		}
 		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, temp));
+		_user_list.insert(std::make_pair(new_client, false));
+	} else {
+		_user_list.insert(std::make_pair(new_client, true));
 	}
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_ENDOFNAMES, _name));
-	_user_list.insert(std::make_pair(new_client, false));
 	new_client->setJoinedChannel(_name);
 }
 
@@ -261,7 +274,7 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 	std::string temp;
 	temp = ":" + request_client->getNickname() + "!" + request_client->getUsername() \
 				+ "@" + request_client->getHostname() + " KICK " + _name + " " \
-				+ target_client->getUsername();
+				+ target_client->getNickname();
 	if (reason != "")
 		temp += " :" + reason;
 	temp += "\r\n";
