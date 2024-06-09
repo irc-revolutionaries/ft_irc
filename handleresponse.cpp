@@ -11,9 +11,6 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 	std::string nickname = client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname();
 	switch (cmd_code)
 	{
-		case PRIVMSG: //000
-			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo + "\r\n";
-			break;
 		case RPL_WELCOME: // 001
             message = ":" + g_server_name + " 001 " + client->getNickname() + " :Welcome to the ft_irc " + nickname + "\r\n";
             break;
@@ -26,8 +23,17 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
         case RPL_MYINFO: // 004
             message = ":" + g_server_name + " 004 " + client->getNickname() + " " + g_server_name + " " + target + "\r\n";
             break;
-        case NICK: // 004
+		case PRIVMSG: //900
+			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo + "\r\n";
+			break;
+        case NICK: //901
 			message = ":" + nickname + " NICK " + target + " :" + "\r\n";
+            break;
+        case JOIN: //902
+			message = ":" + nickname + " JOIN " + ":" + target + "\r\n";
+            break;
+        case QUIT: //903
+			message = ":" + nickname + " QUIT " + ":" + target + "\r\n";
             break;
 	}
 	return (message);

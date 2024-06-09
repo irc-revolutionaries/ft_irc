@@ -22,7 +22,9 @@ extern std::string g_server_name;
 //Command
 enum e_msg {
 	PRIVMSG	= 900,
-	NICK
+	NICK,
+	JOIN,
+	QUIT
 };
 
 #define RPL_WELCOME 0
