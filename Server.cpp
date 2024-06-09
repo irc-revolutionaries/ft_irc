@@ -35,11 +35,14 @@ int		Server::getKq() const { return (_kq); }
 
 //서버 소켓 설정
 void	Server::setServer(std::vector<struct kevent>& change_list) {
+	int	option = 1;
+
 	//소켓 생성
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
 	std::cout << "socket create\n";
 	if (int(_fd) == -1)
 		exitMessage("socket error\n" + std::string(strerror(errno)));
+	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, (void *)(&option), sizeof(option));
 	
 	memset(&_server_addr, 0, sizeof(_server_addr));
 	_server_addr.sin_family = AF_INET;
