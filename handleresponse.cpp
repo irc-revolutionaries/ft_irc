@@ -26,6 +26,9 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
         case RPL_MYINFO: // 004
             message = ":" + g_server_name + " 004 " + client->getNickname() + " " + g_server_name + " " + target + "\r\n";
             break;
+        case NICK: // 004
+			message = ":" + nickname + " NICK " + target + " :" + "\r\n";
+            break;
 	}
 	return (message);
 }

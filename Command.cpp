@@ -112,7 +112,6 @@ void Command::pass(Server& server, Client* client) {
 		return ;
 	}
 	if (_params[0] == server.getPassword()) {
-		std::cout<< "PASS compladsd\n";
 		client->setPass(true);
 	}
 	else {
@@ -154,7 +153,7 @@ void Command::nick(Server& server, Client* client) {
 	}
 	client->setNick(true);
 	client->setNickname(nickname);
-	std::cout<< "NICK complaadsadsd\n";
+	client->setMessage(messageFormat(NICK, client, nickname));
 }
 
 void Command::user(Client* client) {
