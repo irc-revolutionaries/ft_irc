@@ -36,6 +36,7 @@ void	Channel::plusOptI(Client* request_client) {
 
 // t 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptT(Client* request_client) {
+	std::cout << "t option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -49,6 +50,7 @@ void	Channel::plusOptT(Client* request_client) {
 
 // k 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptK(Client* request_client, const std::string& key) {
+	std::cout << "k option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -66,6 +68,7 @@ void	Channel::plusOptK(Client* request_client, const std::string& key) {
 
 // l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
 void	Channel::plusOptL(Client* request_client, std::size_t limit) {
+	std::cout << "l option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -87,6 +90,7 @@ void	Channel::plusOptL(Client* request_client, std::size_t limit) {
 
 // o 옵션 설정되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
 void	Channel::plusOptO(Client* request_client, Client* target_client) {
+	std::cout << "o option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -105,6 +109,7 @@ void	Channel::plusOptO(Client* request_client, Client* target_client) {
 
 // i 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptI(Client* request_client) {
+	std::cout << "-i option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -118,6 +123,7 @@ void	Channel::minusOptI(Client* request_client) {
 
 // t 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptT(Client* request_client) {
+	std::cout << "-t option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -131,6 +137,7 @@ void	Channel::minusOptT(Client* request_client) {
 
 // k 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptK(Client* request_client) {
+	std::cout << "-k option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -144,6 +151,7 @@ void	Channel::minusOptK(Client* request_client) {
 
 // l 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptL(Client* request_client) {
+	std::cout << "-l option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -157,6 +165,7 @@ void	Channel::minusOptL(Client* request_client) {
 
 // o 옵션 제거되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
 void	Channel::minusOptO(Client* request_client, Client* target_client) {
+	std::cout << "-o option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;

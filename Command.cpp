@@ -123,7 +123,8 @@ void Command::nick(Server& server, Client* client) {
 	//NICK <nickname>
 	//want 코크풍선..
 	//NICK 변경가능 
-
+	
+	std::map<int, Client *> client_list = server.getClientList();
 	if (_params.empty()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
 		return ;
@@ -151,10 +152,10 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
 		return ;
 	}
-	// if (client->getNick()) {
-		
-	// }
-	std::cout << client << '\n';
+	if (client->getNick()) {
+		;	
+	}
+	std::cout << "client list size " << client_list.size() << '\n';
 	client->setNickname(nickname);
 	client->setNick(true);
 	client->setMessage(messageFormat(NICK, client, nickname));
@@ -263,12 +264,22 @@ void	Command::kick(Server& server, Client* client){
 	}
 	std::string channel_name = _params[0];
 	std::string target_name = _params[1];
+	Client* target_client = server.findClient(target_name);
 	if (_params.size() >= 3) {
 		std::string comment = _params[2];
+		if (!target_client) {
+			client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, target_name));
+			return ;
+		}
 		channel_list[channel_name]->kick(client, server.findClient(target_name), comment);
 	}
-	else
+	else {
+		if (!target_client) {
+			client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, target_name));
+			return ;
+		}
 		channel_list[channel_name]->kick(client, server.findClient(target_name), "");
+	}
 }
 
 void	Command::topic(Server& server, Client* client) {
@@ -340,8 +351,10 @@ void	Command::mode(Server& server, Client* client) {
 	//파라미터 없는 모드 : i, t
 	//파라미터 있는 모드 : k, o, l
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
-	if (_params.size() < 1)
-		std::cerr << "invalid numbers of params\n";
+	if (_params.size() < 1) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+		return ;
+	}
 	//MODE <channel>일떄 answerMode()
 	if (_params.size() == 1) {
 		if (channel_list.find(_params[0]) != channel_list.end())
@@ -365,7 +378,8 @@ void	Command::mode(Server& server, Client* client) {
 	}
 	bool sign = opt[pos] == '+' ? true : false;
 	std::size_t	order_params = 2;
-	for (size_t i = pos; i < opt.size(); ++i) {
+	for (size_t i = pos + 1; i < opt.size(); ++i) {
+		std::cout << "opt : " << opt[i] << '\n';
 		if (!(opt[i] == 'i' || opt[i] == 't' || opt[i] == 'k' 
 			|| opt[i] == 'o' || opt[i] == 'l')) {
 				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1,opt[i])));
@@ -377,8 +391,7 @@ void	Command::mode(Server& server, Client* client) {
 			} else if (opt[i] == 't') {
 				channel_list[channel_name]->plusOptT(client);
 			} else if (opt[i] == 'k') {
-				//KEYSET, NEEDMOREPARAMS
-				//여기서 KEYSET을 어떻게 호출?
+				//error msg 안뜸
 				if (order_params == _params.size()) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));//여기의 target에 뭐가 들어가야 할지 모르겠음
 					continue ;
@@ -392,8 +405,8 @@ void	Command::mode(Server& server, Client* client) {
 					continue ;
 				}
 				if (!server.findClient(_params[order_params])) {
-					//??///
-					//
+					client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[order_params]));
+					return ;
 				}
 				channel_list[channel_name]->plusOptO(client, server.findClient(_params[order_params]));
 				++order_params;
@@ -428,8 +441,11 @@ void	Command::mode(Server& server, Client* client) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 					return ;
 				}
-				server.findClient(_params[2]);
-				channel_list[channel_name]->minusOptO(client, server.findClient(_params[order_params]));
+				if (!server.findClient(_params[2])) {
+					client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[2]));
+					return ;
+				}
+				channel_list[channel_name]->minusOptO(client, server.findClient(_params[2]));
 			} else if (opt[i] == 'l') {
 				//NEEDMOREPARAMS
 				if (order_params == _params.size()) {
@@ -446,3 +462,4 @@ void	Command::mode(Server& server, Client* client) {
 		}
 	}
 }
+// /connect -nocap localhost 8080 13
