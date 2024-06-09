@@ -21,14 +21,14 @@ extern std::string g_server_name;
 
 //Command
 enum e_msg {
-	PRIVMSG	= 0,
-	NICK,
+	PRIVMSG	= 900,
+	NICK
 };
 
-#define RPL_WELCOME 1
-#define RPL_YOURHOST 2
-#define RPL_CREATED 3
-#define RPL_MYINFO 4
+#define RPL_WELCOME 0
+#define RPL_YOURHOST 1
+#define RPL_CREATED 2
+#define RPL_MYINFO 3
 
 //Error replies
 #define ERR_ALREADYREGISTRED	462
