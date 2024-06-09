@@ -234,6 +234,7 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 
 // kick 성공하면 0, 권한이 없으면 1, 없는 client면 2 반환
 void	Channel::kick(Client* request_client, Client* target_client, const std::string& reason) {
+	std::cout << "request : " << request_client->getNickname() << "\n target : " << target_client->getNickname() << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
 		return ;
@@ -244,7 +245,7 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOSUCHNICK));
+		request_client->setMessage(handleResponse(target_client->getNickname(), ERR_NOSUCHNICK));
 		return ;
 	}
 	// :<nick>!<user>@<host> KICK <channel> <user> :<comment>
