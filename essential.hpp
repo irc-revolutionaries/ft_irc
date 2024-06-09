@@ -20,11 +20,15 @@ extern std::string g_server_name;
 #define MAX_BUF		512
 
 //Command
-#define	PRIVMSG			0
-#define	RPL_WELCOME		1
-#define RPL_YOURHOST	2
-#define RPL_CREATED		3
-#define RPL_MYINFO		4
+enum e_msg {
+	PRIVMSG	= 0,
+	NICK,
+};
+
+#define RPL_WELCOME 1
+#define RPL_YOURHOST 2
+#define RPL_CREATED 3
+#define RPL_MYINFO 4
 
 //Error replies
 #define ERR_ALREADYREGISTRED	462
