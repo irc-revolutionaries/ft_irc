@@ -58,10 +58,6 @@ void	Channel::plusOptK(Client* request_client, const std::string& key) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
-	_opt_k = key;
-	std::string temp;
-	temp = ":" + g_server_name + " MODE " + _name + " +k " + key + "\r\n";
-	broadcast(temp);
 }
 
 // l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
@@ -79,11 +75,6 @@ void	Channel::plusOptL(Client* request_client, std::size_t limit) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANNELISFULL, _name));
 		return ;
 	}
-	_opt_l = limit;
-	std::stringstream ss;
-	ss << limit;
-	std::string temp = ss.str();
-	broadcast(request_client->getNickname() + " set mode: +i " + temp);
 }
 
 // o 옵션 설정되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
