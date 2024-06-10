@@ -24,7 +24,8 @@ enum e_msg {
 	PRIVMSG	= 900,
 	NICK,
 	JOIN,
-	QUIT
+	QUIT,
+	PONG
 };
 
 #define RPL_WELCOME 0

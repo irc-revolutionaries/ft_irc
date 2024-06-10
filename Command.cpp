@@ -15,14 +15,17 @@ Command::Command() {
 	_cmdlist.push_back("QUIT");
 	_cmdlist.push_back("PRIVMSG");
 	_cmdlist.push_back("MODE");
+	_cmdlist.push_back("PING");
 }
 
 void Command::handleCmd(Server& server, Client* client, const std::string& msg) {
 //이 함수를 통해서 command 호출
 	if (parseCmd(client, msg) == false)
 		return ;
+	if (_cmd == "PING")
+		ping(client);
 	//pass, nick, user 순서대로 됐는지 분기 쪼개야됨
-	if (_cmd == "PASS")
+	else if (_cmd == "PASS")
 		pass(server, client);
 	else if (client->getPass()) { //Pass true 여야 동작가능 
 		if (_cmd == "NICK")
@@ -445,4 +448,10 @@ void	Command::mode(Server& server, Client* client) {
 			}
 		}
 	}
+}
+
+void	Command::ping(Client* client) {
+	if (_params.size() != 1) 
+		return ;
+	client->setMessage(messageFormat(PONG, client));
 }

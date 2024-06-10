@@ -30,12 +30,14 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			message = ":" + nickname + " NICK " + target + " :" + "\r\n";
             break;
         case JOIN: //902
-			message = "\r\n";
-			// message = ":" + nickname + " JOIN " + ":" + target + "\r\n";
+			message = ":" + nickname + " JOIN " + ":" + target + "\r\n";
             break;
         case QUIT: //903
 			message = ":" + nickname + " QUIT " + ":" + target + "\r\n";
             break;
+		case PONG: //904
+			message = "PONG :" + g_server_name + "\r\n";
+			break;
 	}
 	return (message);
 }
