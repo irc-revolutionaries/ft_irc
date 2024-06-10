@@ -22,10 +22,12 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 //이 함수를 통해서 command 호출
 	if (parseCmd(client, msg) == false)
 		return ;
-	if (_cmd == "PING")
+	if (_cmd == "PING")	{
 		ping(client);
+		return ;
+	}
 	//pass, nick, user 순서대로 됐는지 분기 쪼개야됨
-	else if (_cmd == "PASS")
+	if (_cmd == "PASS")
 		pass(server, client);
 	else if (client->getPass()) { //Pass true 여야 동작가능 
 		if (_cmd == "NICK")

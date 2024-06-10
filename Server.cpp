@@ -96,7 +96,7 @@ void    Server::makeCommand(int ident) {
         if (n < 512)
             buf[n] = '\0';
         else
-            buf[n-1] = '\0';
+            buf[n - 1] = '\0';
         _command += buf;
         if (_command.find('\n') != std::string::npos || _command.find('\r') != std::string::npos) {
 			std::istringstream iss(_command);
@@ -117,7 +117,7 @@ void	Server::sendMessage(int ident) {
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
-			ssize_t	n = send(ident, (msg_vec[i] + "\n\r").c_str(), msg_vec[i].length(), 0);
+			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
 			if (n < 0)
 				exitMessage("send error");
 			it->second->clearMessage();
