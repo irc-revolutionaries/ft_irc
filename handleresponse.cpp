@@ -38,6 +38,9 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 		case PONG: //904
 			message = "PONG :" + g_server_name + "\r\n";
 			break;
+		case MODE: //905
+			message = ":" + nickname + " MODE " + target + " " + additionalInfo + "\r\n";
+			break;
 	}
 	return (message);
 }
@@ -113,7 +116,7 @@ const std::string handleResponse(const std::string& nickname, int responseCode, 
 		    message = ":" + g_server_name + " 472 " + nickname + " " + target + " " + ":Unknown mode char to me\r\n";
 		    break;
 		case ERR_USERNOTINCHANNEL: // 441
-		    message = ":" + g_server_name + " 441 " + nickname + " " + target + " " + ":They aren't on that channel\r\n";
+		    message = ":" + g_server_name + " 441 " + nickname + " " + target + " " + additionalInfo + " :They aren't on that channel\r\n";
 		    break;
 		case ERR_USERONCHANNEL: // 443
     		message = ":" + g_server_name + " 443 " + nickname + " " + target + " " + ":User is already on that channel\r\n";
