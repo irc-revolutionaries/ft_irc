@@ -58,10 +58,6 @@ void	Channel::plusOptK(Client* request_client, const std::string& key) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
 		return ;
 	}
-	if (_opt_k != "") {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_KEYSET));
-		return ;
-	}
 	_opt_k = key;
 	std::string temp;
 	temp = ":" + g_server_name + " MODE " + _name + " +k " + key + "\r\n";
