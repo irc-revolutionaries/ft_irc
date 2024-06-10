@@ -104,7 +104,7 @@ void    Server::makeCommand(int ident) {
 			if (_command.find('\n') != std::string::npos) {
 				while (std::getline(iss, tmp, '\n')) {
 					tmp.replace(tmp.find("\r"), tmp.length(), "");
-					std::cout << "_command : " << _command << "\n";
+					std::cout << "\n_command : " << _command;
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
 			}

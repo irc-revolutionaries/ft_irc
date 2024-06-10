@@ -41,6 +41,7 @@ public :
 	const std::string&	getName(void) const;
 	const std::string&	getTopic(void) const;
 
+	bool checkAuthority(Client* client);
 private :
 	std::string					_name;
 	std::map<Client *, bool>	_user_list;
@@ -48,7 +49,6 @@ private :
 	std::vector<std::string>	_invite_list;
 
 	bool checkChannelMember(Client* client);
-	bool checkAuthority(Client* client);
 
 	// 옵션 관련 flag들
 	bool		_opt_i;

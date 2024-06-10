@@ -492,7 +492,7 @@ void	Command::mode(Server& server, Client* client) {
 		}
 	}
 	opt_reply += params_reply;
-	if (!(opt_reply == "+" || opt_reply == "-"))
+	if (channel_list[channel_name]->checkAuthority(client) && !(opt_reply == "+" || opt_reply == "-"))
 		channel_list[channel_name]->broadcast(messageFormat(MODE, client, channel_name, opt_reply));
 }
 
