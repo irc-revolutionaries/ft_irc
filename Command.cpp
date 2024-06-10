@@ -88,10 +88,10 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	std::getline(col_ss, _cmd, ' ');//_cmd
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
 		//421
-		if (client->getNick())
-			client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
-		else 
-			client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND));//ERR_UNKNOWNCOMMAND
+		// if (client->getNick())
+		// 	client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+		// else 
+		client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND));//ERR_UNKNOWNCOMMAND
 		return false;
 	}
 	while (std::getline(col_ss, buf, ' ')) {
@@ -368,12 +368,21 @@ void	Command::mode(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
 		return ;
 	}
-	bool sign = opt[pos] == '+' ? true : false;
+	bool sign;
+	std::string opt_reply;
+	std::string params_reply;
+	if (opt[pos] == '+') {
+		sign = true;
+		opt_reply = "+";
+	}
+	else if (opt[pos] == '-') {
+		sign = false;
+		opt_reply = "-";
+	}
 	bool k = false;
 	bool o = false;
 	bool l = false;
 	std::size_t	order_params = 2;
-	std::string reply = "";
 	for (size_t i = pos + 1; i < opt.size(); ++i) {
 		if (!(opt[i] == 'i' || opt[i] == 't' || opt[i] == 'k' 
 			|| opt[i] == 'o' || opt[i] == 'l')) {
@@ -383,8 +392,10 @@ void	Command::mode(Server& server, Client* client) {
 			}
 		if (sign == true) {
 			if (opt[i] == 'i') {
+				opt_reply += "i";
 				channel_list[channel_name]->plusOptI(client);
 			} else if (opt[i] == 't') {
+				opt_reply += "t";
 				channel_list[channel_name]->plusOptT(client);
 			} else if (opt[i] == 'k') {
 				if (k) {
@@ -396,7 +407,9 @@ void	Command::mode(Server& server, Client* client) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));//여기의 target에 뭐가 들어가야 할지 모르겠음
 					continue ;
 				}
+				opt_reply += "k";
 				channel_list[channel_name]->plusOptK(client, _params[order_params]);
+				params_reply += " " + _params[order_params];
 				++order_params;//이게 받은 인자 개수 넘으면?
 			} else if (opt[i] == 'o') {
 				//NOSUCHNICK, NEEDMOREPARAMS
@@ -410,10 +423,12 @@ void	Command::mode(Server& server, Client* client) {
 					continue ;
 				}
 				if (!server.findClient(_params[order_params])) {
-					client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, "MODE"));
+					client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[order_params], channel_name));
 					continue ;
 				}
+				opt_reply += "o";
 				channel_list[channel_name]->plusOptO(client, server.findClient(_params[order_params]));
+				params_reply += " " + _params[order_params];
 				++order_params;
 			} else if (opt[i] == 'l') {
 				//NEEDMOREPARAMS
@@ -432,7 +447,9 @@ void	Command::mode(Server& server, Client* client) {
 					std::cout << "opt before break : " << opt[i] << '\n';
 					break ;
 				}
+				opt_reply += "l";
 				channel_list[channel_name]->plusOptL(client, nb);
+				params_reply += " " + _params[order_params];
 				++order_params;
 			} else {
 				// ERR_UNKNOWNMODE
@@ -442,10 +459,13 @@ void	Command::mode(Server& server, Client* client) {
 			}
 		} else { //minus
 			if (opt[i] == 'i') {
+				opt_reply += "i";
 				channel_list[channel_name]->minusOptI(client);
 			} else if (opt[i] == 't') {
+				opt_reply += "t";
 				channel_list[channel_name]->minusOptT(client);
 			} else if (opt[i] == 'k') {
+				opt_reply += "k";
 				channel_list[channel_name]->minusOptK(client);
 			} else if (opt[i] == 'o') {
 				//NOSUCHNICK, NEEDMOREPARAMS
@@ -453,9 +473,16 @@ void	Command::mode(Server& server, Client* client) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 					break ;
 				}
-				server.findClient(_params[2]);
-				channel_list[channel_name]->minusOptO(client, server.findClient(_params[order_params]));
+				Client* target = server.findClient(_params[2]);
+				if (!target) {
+					client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[order_params], channel_name));
+					continue ;
+				}
+				opt_reply += "o";
+				params_reply += " " + _params[order_params];
+				channel_list[channel_name]->minusOptO(client, target);
 			} else if (opt[i] == 'l') {
+				opt_reply += "l";
 				channel_list[channel_name]->minusOptL(client);
 			} else {
 				// ERR_UNKNOWNMODE
@@ -464,7 +491,9 @@ void	Command::mode(Server& server, Client* client) {
 			}
 		}
 	}
-	// hi
+	opt_reply += params_reply;
+	if (!(opt_reply == "+" || opt_reply == "-"))
+		channel_list[channel_name]->broadcast(messageFormat(MODE, client, channel_name, opt_reply));
 }
 
 void	Command::ping(Client* client) {
