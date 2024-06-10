@@ -369,12 +369,17 @@ void	Command::mode(Server& server, Client* client) {
 		return ;
 	}
 	bool sign = opt[pos] == '+' ? true : false;
+	bool k = false;
+	bool o = false;
+	bool l = false;
 	std::size_t	order_params = 2;
+	std::string reply = "";
 	for (size_t i = pos + 1; i < opt.size(); ++i) {
 		if (!(opt[i] == 'i' || opt[i] == 't' || opt[i] == 'k' 
 			|| opt[i] == 'o' || opt[i] == 'l')) {
 				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1,opt[i])));
-				return ;
+				std::cout << "opt before break : " << opt[i] << '\n';
+				break ;
 			}
 		if (sign == true) {
 			if (opt[i] == 'i') {
@@ -382,8 +387,11 @@ void	Command::mode(Server& server, Client* client) {
 			} else if (opt[i] == 't') {
 				channel_list[channel_name]->plusOptT(client);
 			} else if (opt[i] == 'k') {
-				//KEYSET, NEEDMOREPARAMS
-				//여기서 KEYSET을 어떻게 호출?
+				if (k) {
+					order_params++;
+					continue ;
+				}
+				k = true;
 				if (order_params == _params.size()) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));//여기의 target에 뭐가 들어가야 할지 모르겠음
 					continue ;
@@ -392,18 +400,28 @@ void	Command::mode(Server& server, Client* client) {
 				++order_params;//이게 받은 인자 개수 넘으면?
 			} else if (opt[i] == 'o') {
 				//NOSUCHNICK, NEEDMOREPARAMS
+				if (o) {
+					order_params++;
+					continue ;
+				}
+				o = true;
 				if (order_params == _params.size()) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 					continue ;
 				}
 				if (!server.findClient(_params[order_params])) {
-					//??///
-					//
+					client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, "MODE"));
+					continue ;
 				}
 				channel_list[channel_name]->plusOptO(client, server.findClient(_params[order_params]));
 				++order_params;
 			} else if (opt[i] == 'l') {
 				//NEEDMOREPARAMS
+				if (l) {
+					order_params++;
+					continue ;
+				}
+				l = true;
 				if (order_params == _params.size()) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 					continue ;
@@ -411,14 +429,16 @@ void	Command::mode(Server& server, Client* client) {
 				long nb = std::atoi(_params[order_params].c_str());
 				if (nb < 0) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[order_params]));
-					return ;
+					std::cout << "opt before break : " << opt[i] << '\n';
+					break ;
 				}
 				channel_list[channel_name]->plusOptL(client, nb);
 				++order_params;
 			} else {
 				// ERR_UNKNOWNMODE
 				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
-				return ;
+				std::cout << "opt before break : " << opt[i] << '\n';
+				break ;
 			}
 		} else { //minus
 			if (opt[i] == 'i') {
@@ -431,25 +451,20 @@ void	Command::mode(Server& server, Client* client) {
 				//NOSUCHNICK, NEEDMOREPARAMS
 				if (_params.size() < 3) {
 					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
-					return ;
+					break ;
 				}
 				server.findClient(_params[2]);
 				channel_list[channel_name]->minusOptO(client, server.findClient(_params[order_params]));
 			} else if (opt[i] == 'l') {
-				//NEEDMOREPARAMS
-				if (order_params == _params.size()) {
-					client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
-					continue ;
-				}
-				else
-					channel_list[channel_name]->minusOptL(client);
+				channel_list[channel_name]->minusOptL(client);
 			} else {
 				// ERR_UNKNOWNMODE
 				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
-				return ;
+				break ;
 			}
 		}
 	}
+	// hi
 }
 
 void	Command::ping(Client* client) {
