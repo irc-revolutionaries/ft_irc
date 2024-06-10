@@ -368,7 +368,7 @@ void	Command::mode(Server& server, Client* client) {
 	}
 	bool sign = opt[pos] == '+' ? true : false;
 	std::size_t	order_params = 2;
-	for (size_t i = pos; i < opt.size(); ++i) {
+	for (size_t i = pos + 1; i < opt.size(); ++i) {
 		if (!(opt[i] == 'i' || opt[i] == 't' || opt[i] == 'k' 
 			|| opt[i] == 'o' || opt[i] == 'l')) {
 				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1,opt[i])));
