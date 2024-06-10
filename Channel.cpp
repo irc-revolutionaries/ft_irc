@@ -201,35 +201,31 @@ void Channel::join(Client* new_client, const std::string& key) {
 	}
 	if (_opt_i == true)
 		_invite_list.erase(it);
-	// :<nick>!<user>@<host> JOIN <channel>
-	std::string temp;
-	temp = ":" + new_client->getNickname() + "!" + new_client->getUsername() \
-				+ "@" + new_client->getHostname() + " JOIN " + _name;
-	broadcast(temp);
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_TOPIC, _name, _topic));
+	broadcast(messageFormat(JOIN, new_client, _name));
 	if (_user_list.size() > 0) {
-		if (_user_list.begin()->second == true) {
+		std::string temp;
+		if (_user_list.begin()->second == true)
 			temp = "@" + _user_list.begin()->first->getNickname();
-		} else {
+		else
 			temp = _user_list.begin()->first->getNickname();
-		}
 		std::map<Client *, bool>::iterator it = _user_list.begin();
 		it++;
 		for (; it != _user_list.end(); it++) {
-			if (it->second == true) {
+			if (it->second == true) 
 				temp += " @" + it->first->getNickname();
-			} else {
+			else 
 				temp += " " + it->first->getNickname();
-			}
 		}
 		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, temp));
 		_user_list.insert(std::make_pair(new_client, false));
-	} else {
+	} else
+	{
 		_user_list.insert(std::make_pair(new_client, true));
+		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, "@" + new_client->getNickname()));
 	}
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_ENDOFNAMES, _name));
 	new_client->setJoinedChannel(_name);
-	broadcastWithoutClient(messageFormat(JOIN, new_client, _name), new_client);
 }
 
 // INVITE
