@@ -120,7 +120,14 @@ void	Server::sendMessage(int ident) {
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
 			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
 			if (n < 0) {
-				exitMessage("send error");
+				// exitMessage("send error");
+				// std::vector<std::string>	joined_channel = it->second->getJoinedChannel();
+				// for (std::vector<std::string>::iterator i = joined_channel.begin(); i != joined_channel.end(); i++) {
+				// 	_channel_list.find(*i)->second->quit(it->second, "send error");
+				// }
+				// _client_list.erase(it);
+				disconnectClient(ident);
+				return ;
 			}
 			it->second->clearMessage();
 		}
