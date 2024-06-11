@@ -2,6 +2,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Server.hpp"
+#include "Bonus.hpp"
 #include <sstream>
 
 Command::Command() {
@@ -152,7 +153,7 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
 	}
-	if (server.findClient(nickname)) {
+	if (server.findClient(nickname) || nickname == "bot") {
 		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
 		return ;
 	}
@@ -329,11 +330,15 @@ void	Command::privmsg(Server& server, Client* client) {
 			else
 				channel_list[receiver]->broadcastWithoutClient(messageFormat(PRIVMSG, client, receiver, msg), client);//여기에다가 포맷 맞춰서 보내기
 		} else {//receiver가 client
+			if (receiver == "bot") {
+				excuteBot(client);
+				return ;
+			}
 			Client* receive_client = server.findClient(receiver);
 			if (!receive_client)
 				client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, receiver));
 			else
-				receive_client->setMessage(msg);
+				receive_client->setMessage(messageFormat(PRIVMSG, client, receive_client->getNickname(), msg));
 		}
 	}
 }

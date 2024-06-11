@@ -119,8 +119,9 @@ void	Server::sendMessage(int ident) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
 			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
-			if (n < 0)
+			if (n < 0) {
 				exitMessage("send error");
+			}
 			it->second->clearMessage();
 		}
 	}
