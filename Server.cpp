@@ -182,5 +182,6 @@ void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int1
 }
 
 void	Server::deleteChannelList(std::string ch_name) {
+	delete _channel_list.find(ch_name)->second;
 	_channel_list.erase(ch_name);
 }

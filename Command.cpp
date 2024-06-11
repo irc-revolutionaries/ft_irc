@@ -283,6 +283,8 @@ void	Command::kick(Server& server, Client* client){
 	}
 	else
 		channel_list[channel_name]->kick(client, server.findClient(target_name), "");
+	if (channel_list[channel_name]->getUserList().size() == 0)
+		server.deleteChannelList(channel_name);
 }
 
 void	Command::topic(Server& server, Client* client) {
@@ -311,8 +313,11 @@ void	Command::quit(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "QUIT"));
 		return ;
 	}
-	for (unsigned int i = 0; i < joined_channel.size(); ++i)
+	for (unsigned int i = 0; i < joined_channel.size(); ++i) {
 		channel_list[joined_channel[i]]->quit(client, _params[0]);
+		if (channel_list[joined_channel[i]]->getUserList().size() == 0)
+			server.deleteChannelList(joined_channel[i]);
+	}
 	server.disconnectClient(client->getFd());// 이거맞아?
 }
 
