@@ -273,6 +273,10 @@ void	Command::kick(Server& server, Client* client){
 	}
 	std::string channel_name = _params[0];
 	std::string target_name = _params[1];
+	if (!server.findClient(target_name)) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, target_name, channel_name));
+		return ;
+	}
 	if (_params.size() >= 3) {
 		std::string comment = _params[2];
 		channel_list[channel_name]->kick(client, server.findClient(target_name), comment);
