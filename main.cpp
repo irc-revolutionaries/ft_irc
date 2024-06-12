@@ -17,8 +17,10 @@ int	main(int argc, char **argv) {
 	server.setServer(change_list);
 	signal(SIGPIPE, SIG_IGN);
 	while (true) {
-		new_events = kevent(int(server.getKq()), &change_list[0], change_list.size(), 
+		new_events = kevent(int(server.getKq()), &change_list[0], change_list.size(), \
 				event_list, EVENT_MAX, NULL);
+		if (new_events == -1)
+			exitMessage("kevent error");
 		change_list.clear();
 
 		for (int i = 0; i < new_events; ++i) {
@@ -28,7 +30,7 @@ int	main(int argc, char **argv) {
 					exitMessage("server socket error");
 				else {
 					std::cerr << "client socket error" << "\n";
-					// server.disconnectClient(curr_event->ident, change_list);
+					server.disconnectClient(curr_event->ident);
 				}
 			} else if (curr_event->filter == EVFILT_READ) {
 				if (curr_event->ident == (unsigned long)(server.getFd()))
@@ -37,7 +39,7 @@ int	main(int argc, char **argv) {
 							server.getClientList().end())
 					server.makeCommand(curr_event->ident);
 			} else if (curr_event->filter == EVFILT_WRITE)
-				server.sendMessage(curr_event->ident, change_list);
+				server.sendMessage(curr_event->ident);
 		}
 	}
 }

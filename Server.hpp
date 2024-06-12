@@ -22,8 +22,8 @@ public :
 	void	setServer(std::vector<struct kevent>& change_list);
 	void	addClient(std::vector<struct kevent>& change_list);
 	void	makeCommand(int ident);
-	void	sendMessage(int ident, std::vector<struct kevent>& change_list);
-	void	disconnectClient(int client_fd, std::vector<struct kevent>& change_list);
+	void	sendMessage(int ident);
+	void	disconnectClient(int client_fd);
 	void	createChannel(std::string ch_name);
 	Client*	findClient(const std::string& name);
 	void	deleteChannelList(std::string ch_name);
