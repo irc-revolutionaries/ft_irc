@@ -79,7 +79,6 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 	fcntl(client_fd, F_SETFL, O_NONBLOCK); //non-blocking 모드
 	changeEvents(change_list, client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	changeEvents(change_list, client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	// changeEvents(change_list, client_fd, EVFILT_PROC, EV_ADD | EV_ENABLE, NOTE_EXIT, 0, NULL);
 
 	//클라이언트 추가
 	Client *new_client = new Client(client_fd);
@@ -142,7 +141,7 @@ void	Server::disconnectClient(int client_fd) {
 	close(client_fd); //연결 종료
 	for (size_t i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
-		if (_channel_list[joined_channel[i]]->getUserList().size() == 1) {
+		if (_channel_list[joined_channel[i]]->getUserList().size() == 0) {
 			deleteChannelList(joined_channel[i]);
 		}
 	}
