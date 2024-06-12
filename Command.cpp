@@ -237,6 +237,7 @@ void Command::join(Server& server, Client* client) {
 		else{
 			server.createChannel(channel_name);//못찾으면 채널생성,
 			std::map<std::string, Channel *> channel_list1 = server.getChannelList();
+			std::cout << "after make channel* " << channel_list1[channel_name] << '\n';
 			channel_list1[channel_name]->join(client, channel_key);
 		}
 	}
@@ -318,12 +319,13 @@ void	Command::quit(Server& server, Client* client) {
 		return ;
 	}
 	for (unsigned int i = 0; i < joined_channel.size(); ++i) {
-		channel_list[joined_channel[i]]->quit(client, _params[0]);
-		if (channel_list[joined_channel[i]]->getUserList().size() == 0)
+		channel_list[joined_channel[i]]->quit(client, _params[0]);//channel에서 유저를 지워
+		if (channel_list[joined_channel[i]]->getUserList().size() == 1) {
 			server.deleteChannelList(joined_channel[i]);
+		}
 	}
+	client->clearJoinedChannel();
 	client->setDisconnect(true);
-	// server.disconnectClient(client->getFd());// 이거맞아?
 }
 
 void	Command::privmsg(Server& server, Client* client) {
@@ -368,27 +370,29 @@ void	Command::mode(Server& server, Client* client) {
 	//파라미터 없는 모드 : i, t
 	//파라미터 있는 모드 : k, o, l
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
-	if (_params.size() < 1)
-		std::cerr << "invalid numbers of params\n";
+	if (_params.size() < 1) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+		return ;
+	}
 	//MODE <channel>일떄 answerMode()
 	if (_params.size() == 1) {
 		if (channel_list.find(_params[0]) != channel_list.end())
 			channel_list[_params[0]]->answerMode(client);
 		else {
-			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[1]));
+			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[0]));
 			return ;
 		}
 	}
 	std::string	channel_name = _params[0];
 	if (channel_list.find(channel_name) == channel_list.end()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[1]));
+		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 		return ;
 	}
 	std::string opt = _params[1];
 	size_t pos = std::min(opt.find('+'), opt.find('-'));//둘중 작은값으로 시작
 	if (pos == std::string::npos) {
 		// UNKNOWNMODE 472
-		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
+		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt + "first"));
 		return ;
 	}
 	bool sign;
@@ -409,7 +413,7 @@ void	Command::mode(Server& server, Client* client) {
 	for (size_t i = pos + 1; i < opt.size(); ++i) {
 		if (!(opt[i] == 'i' || opt[i] == 't' || opt[i] == 'k' 
 			|| opt[i] == 'o' || opt[i] == 'l')) {
-				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1,opt[i])));
+				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1,opt[i]) + "sec"));
 				std::cout << "opt before break : " << opt[i] << '\n';
 				break ;
 			}
@@ -466,7 +470,7 @@ void	Command::mode(Server& server, Client* client) {
 				}
 				long nb = std::atoi(_params[order_params].c_str());
 				if (nb < 0) {
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[order_params]));
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[order_params] + "three"));
 					std::cout << "opt before break : " << opt[i] << '\n';
 					break ;
 				}
@@ -476,7 +480,7 @@ void	Command::mode(Server& server, Client* client) {
 				++order_params;
 			} else {
 				// ERR_UNKNOWNMODE
-				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
+				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i]) + "4th"));
 				std::cout << "opt before break : " << opt[i] << '\n';
 				break ;
 			}
@@ -509,7 +513,7 @@ void	Command::mode(Server& server, Client* client) {
 				channel_list[channel_name]->minusOptL(client);
 			} else {
 				// ERR_UNKNOWNMODE
-				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
+				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt + "5th"));
 				break ;
 			}
 		}
