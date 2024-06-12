@@ -43,3 +43,7 @@ void Client::deleteJoinedChannel(const std::string& channel_name) {
 	if (it != _joined_channel.end())
 		_joined_channel.erase(it);
 }
+
+void	Client::clearJoinedChannel() {
+	_joined_channel.clear();
+}

@@ -33,6 +33,7 @@ public :
 
 	void	clearMessage();
 	const std::vector<std::string>&	getJoinedChannel() const;
+	void	clearJoinedChannel();
 	void	setJoinedChannel(const std::string& channel_name);
 	void	deleteJoinedChannel(const std::string& channel_name);
 private :
