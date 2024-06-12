@@ -35,6 +35,8 @@ int	main(int argc, char **argv) {
 			} else if (curr_event->filter == EVFILT_READ) {
 				if (curr_event->ident == (unsigned long)(server.getFd()))
 					server.addClient(change_list);
+				else if (curr_event->flags & EV_EOF)
+					server.disconnectClient(curr_event->ident);
 				else if (server.getClientList().find(curr_event->ident) != \
 							server.getClientList().end())
 					server.makeCommand(curr_event->ident);
