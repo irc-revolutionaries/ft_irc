@@ -2,5 +2,5 @@
 #include "Client.hpp"
 
 void excuteBot(Client* request_client) {
-	request_client->setMessage("아이앰 그루트");
+	request_client->setMessage(":bot!bot@" + request_client->getHostname() + " PRIVMSG " + request_client->getNickname() + " :아이앰 그루트\r\n");
 }

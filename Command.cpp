@@ -2,6 +2,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "Server.hpp"
+#include "Bonus.hpp"
 #include <sstream>
 
 Command::Command() {
@@ -32,35 +33,28 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 	else if (client->getPass()) { //Pass true 여야 동작가능 
 		if (_cmd == "NICK")
 			nick(server, client);
-		else if (client->getNick()) {
-			if (_cmd == "USER")
-				user(client);
-			else if (client->getUser()) {
-				if (_cmd == "JOIN")
-					join(server, client);
-				else if (_cmd == "INVITE")
-					invite(server, client);
-				else if (_cmd == "KICK")
-					kick(server, client);
-				else if (_cmd == "TOPIC")
-					topic(server, client);
-				else if (_cmd == "QUIT")
-					quit(server, client);
-				else if (_cmd == "PRIVMSG")
-					privmsg(server, client);
-				else if (_cmd == "MODE")
-					mode(server, client);
-				else {
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
-				}
-			}
+		else if (_cmd == "USER")
+			user(client);
+		else if (client->getAllReady()) {
+			if (_cmd == "JOIN")
+				join(server, client);
+			else if (_cmd == "INVITE")
+				invite(server, client);
+			else if (_cmd == "KICK")
+				kick(server, client);
+			else if (_cmd == "TOPIC")
+				topic(server, client);
+			else if (_cmd == "QUIT")
+				quit(server, client);
+			else if (_cmd == "PRIVMSG")
+				privmsg(server, client);
+			else if (_cmd == "MODE")
+				mode(server, client);
 			else {
-				client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
-				return ;
+				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
 			}
 		}
 		else {
-			// ERR_NOTREGISTERED (451)
 			client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
 			return ;
 		}
@@ -152,7 +146,7 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
 	}
-	if (server.findClient(nickname)) {
+	if (server.findClient(nickname) || nickname == "bot") {
 		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
 		return ;
 	}
@@ -163,6 +157,8 @@ void Command::nick(Server& server, Client* client) {
 	client->setNickname(nickname);
 	client->setNick(true);
 	client->setMessage(messageFormat(NICK, client, nickname));
+	if (client->getNick() && client->getUser() && !client->getAllReady())
+		allready(client);
 }
 
 void Command::user(Client* client) {
@@ -180,11 +176,20 @@ void Command::user(Client* client) {
 	client->setHostname(_params[1]);
 	client->setServername(_params[2]);
 	client->setRealname(_params[3]);
+	// client->setMessage(messageFormat(RPL_WELCOME, client));
+	// client->setMessage(messageFormat(RPL_YOURHOST, client));
+	// client->setMessage(messageFormat(RPL_CREATED, client, "Mon Jan 1 00:00:00 2020"));
+	// client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 x itklo"));
+	if (client->getNick() && client->getUser() && !client->getAllReady())
+		allready(client);
+}
+
+void	Command::allready(Client* client) {
 	client->setMessage(messageFormat(RPL_WELCOME, client));
 	client->setMessage(messageFormat(RPL_YOURHOST, client));
 	client->setMessage(messageFormat(RPL_CREATED, client, "Mon Jan 1 00:00:00 2020"));
 	client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 x itklo"));
-	std::cout<< "USER complaadsadsd\n";
+	client->setAllReady(true);
 }
 
 void Command::join(Server& server, Client* client) {
@@ -268,12 +273,18 @@ void	Command::kick(Server& server, Client* client){
 	}
 	std::string channel_name = _params[0];
 	std::string target_name = _params[1];
+	if (!server.findClient(target_name)) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, target_name, channel_name));
+		return ;
+	}
 	if (_params.size() >= 3) {
 		std::string comment = _params[2];
 		channel_list[channel_name]->kick(client, server.findClient(target_name), comment);
 	}
 	else
 		channel_list[channel_name]->kick(client, server.findClient(target_name), "");
+	if (channel_list[channel_name]->getUserList().size() == 0)
+		server.deleteChannelList(channel_name);
 }
 
 void	Command::topic(Server& server, Client* client) {
@@ -302,8 +313,11 @@ void	Command::quit(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "QUIT"));
 		return ;
 	}
-	for (unsigned int i = 0; i < joined_channel.size(); ++i)
+	for (unsigned int i = 0; i < joined_channel.size(); ++i) {
 		channel_list[joined_channel[i]]->quit(client, _params[0]);
+		if (channel_list[joined_channel[i]]->getUserList().size() == 0)
+			server.deleteChannelList(joined_channel[i]);
+	}
 	server.disconnectClient(client->getFd());// 이거맞아?
 }
 
@@ -329,11 +343,15 @@ void	Command::privmsg(Server& server, Client* client) {
 			else
 				channel_list[receiver]->broadcastWithoutClient(messageFormat(PRIVMSG, client, receiver, msg), client);//여기에다가 포맷 맞춰서 보내기
 		} else {//receiver가 client
+			if (receiver == "bot") {
+				excuteBot(client);
+				return ;
+			}
 			Client* receive_client = server.findClient(receiver);
 			if (!receive_client)
 				client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, receiver));
 			else
-				receive_client->setMessage(msg);
+				receive_client->setMessage(messageFormat(PRIVMSG, client, receive_client->getNickname(), msg));
 		}
 	}
 }

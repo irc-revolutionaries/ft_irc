@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd)
-: _fd(fd), _pass(false), _nick(false), _user(false) {}
+: _fd(fd), _pass(false), _nick(false), _user(false), _allready(false) {}
 
 void	Client::setNickname(const std::string& nickname) { this->_nickname = nickname; }
 void	Client::setUsername(const std::string& username) { this->_username = username; }
@@ -12,6 +12,7 @@ void	Client::setMessage(const std::string& message) { this->_message.push_back(m
 void	Client::setPass(bool check) { this->_pass = check; }
 void	Client::setNick(bool check) { this->_nick = check; }
 void	Client::setUser(bool check) { this->_user = check; }
+void	Client::setAllReady(bool check) { this->_allready = check; }
 
 int	Client::getFd() const { return (_fd); }
 const std::string&	Client::getNickname() const { return (_nickname); }
@@ -23,6 +24,7 @@ const std::vector<std::string>&	Client::getMessage() const { return (_message); 
 bool	Client::getPass() const { return (_pass); }
 bool	Client::getNick() const { return (_nick); }
 bool	Client::getUser() const { return (_user); }
+bool	Client::getAllReady() const { return (_allready); }
 void Client::clearMessage() {
 	_message.clear();
 }

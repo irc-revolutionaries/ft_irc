@@ -26,6 +26,7 @@ public :
 	void	privmsg(Server& server, Client* client);
 	void	mode(Server& server, Client* client);
 	void	ping(Client* client);
+	void	allready(Client* client);
 
 private :
 	std::vector <std::string> _cmdlist;

@@ -119,8 +119,16 @@ void	Server::sendMessage(int ident) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
 			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
-			if (n < 0)
-				exitMessage("send error");
+			if (n < 0) {
+				// exitMessage("send error");
+				// std::vector<std::string>	joined_channel = it->second->getJoinedChannel();
+				// for (std::vector<std::string>::iterator i = joined_channel.begin(); i != joined_channel.end(); i++) {
+				// 	_channel_list.find(*i)->second->quit(it->second, "send error");
+				// }
+				// _client_list.erase(it);
+				disconnectClient(ident);
+				return ;
+			}
 			it->second->clearMessage();
 		}
 	}
@@ -174,5 +182,6 @@ void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int1
 }
 
 void	Server::deleteChannelList(std::string ch_name) {
+	delete _channel_list.find(ch_name)->second;
 	_channel_list.erase(ch_name);
 }

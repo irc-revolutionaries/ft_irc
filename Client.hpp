@@ -15,9 +15,11 @@ public :
 	void	setPass(bool check);
 	void	setNick(bool check);
 	void	setUser(bool check);
+	void	setAllReady(bool check);
 	bool	getPass() const;
 	bool	getNick() const;
 	bool	getUser() const;
+	bool	getAllReady() const;
 
 	int	getFd() const;
 	const std::string&	getNickname() const;
@@ -41,6 +43,7 @@ private :
 	bool		_pass;
 	bool		_nick;
 	bool		_user;
+	bool		_allready;
 	std::vector<std::string>	_message;
 	std::vector<std::string>	_joined_channel;
 };
