@@ -124,6 +124,9 @@ void Command::nick(Server& server, Client* client) {
 	//want 코크풍선..
 	//NICK 변경가능 
 
+	if (client->getNick()) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+	}
 	if (_params.empty()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
 		return ;
@@ -151,9 +154,6 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
 		return ;
 	}
-	// if (client->getNick()) {
-		
-	// }
 	std::cout << client << '\n';
 	client->setNickname(nickname);
 	client->setNick(true);
@@ -164,6 +164,9 @@ void Command::nick(Server& server, Client* client) {
 
 void Command::user(Client* client) {
 	//USER <username> <hostname> <servername> :<realname>
+	if (client->getUser()) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+	}
 	if (_params.size() < 4) { //<= 4 ?
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "USER"));
 		return ;
