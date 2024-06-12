@@ -255,7 +255,7 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(target_client->getNickname(), ERR_NOSUCHNICK));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
 		return ;
 	}
 	// :<nick>!<user>@<host> KICK <channel> <user> :<comment>
@@ -278,7 +278,7 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 		return ;
 	}
 	if (topic == "") {
-		std::cout << "토픽 확인!!" << std::endl;
+		std::cout << "토픽 delete!!" << std::endl;
 		if (_topic == "") {
 			std::cout << "->토픽 없음!!" << std::endl;
 			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_NOTOPIC));
