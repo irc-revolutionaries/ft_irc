@@ -114,7 +114,8 @@ void Command::pass(Server& server, Client* client) {
 		client->setPass(true);
 	}
 	else {
-		client->setMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
+		client->setMessage(handleResponse(client->getNickname(), ERR_PASSWDMISMATCH));
+		client->setDisconnect(true);
 	}
 }
 
@@ -231,7 +232,7 @@ void Command::join(Server& server, Client* client) {
 		if (channel_list.find(channel_name) != channel_list.end())
 			channel_list[channel_name]->join(client, channel_key);
 		else{
-			server.createChannel(client, channel_name);//못찾으면 채널생성,
+			server.createChannel(channel_name);//못찾으면 채널생성,
 			std::map<std::string, Channel *> channel_list1 = server.getChannelList();
 			channel_list1[channel_name]->join(client, channel_key);
 		}
@@ -318,7 +319,8 @@ void	Command::quit(Server& server, Client* client) {
 		if (channel_list[joined_channel[i]]->getUserList().size() == 0)
 			server.deleteChannelList(joined_channel[i]);
 	}
-	server.disconnectClient(client->getFd());// 이거맞아?
+	client->setDisconnect(true);
+	// server.disconnectClient(client->getFd());// 이거맞아?
 }
 
 void	Command::privmsg(Server& server, Client* client) {

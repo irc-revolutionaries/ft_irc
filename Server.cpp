@@ -113,20 +113,14 @@ void    Server::makeCommand(int ident) {
     }
 }
 
-void	Server::sendMessage(int ident) {
+void	Server::sendMessage(int ident, std::vector<struct kevent>& change_list) {
 	std::map<int, Client *>::const_iterator it = _client_list.find(ident);
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
 			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
-			if (n < 0) {
-				// exitMessage("send error");
-				// std::vector<std::string>	joined_channel = it->second->getJoinedChannel();
-				// for (std::vector<std::string>::iterator i = joined_channel.begin(); i != joined_channel.end(); i++) {
-				// 	_channel_list.find(*i)->second->quit(it->second, "send error");
-				// }
-				// _client_list.erase(it);
-				disconnectClient(ident);
+			if (n < 0 || it->second->getDisconnect() == true) {
+				disconnectClient(ident, change_list);
 				return ;
 			}
 			it->second->clearMessage();
@@ -134,10 +128,12 @@ void	Server::sendMessage(int ident) {
 	}
 }
 
-void	Server::disconnectClient(int client_fd) {
+void	Server::disconnectClient(int client_fd, std::vector<struct kevent>& change_list) {
 	std::vector<std::string> joined_channel = _client_list[client_fd]->getJoinedChannel();
 
 	std::cout << "client disconnected: " << client_fd << "\n";
+	changeEvents(change_list, client_fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	changeEvents(change_list, client_fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 	close(client_fd); //연결 종료
 	for (size_t i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
@@ -150,8 +146,7 @@ void	Server::disconnectClient(int client_fd) {
 	_client_list.erase(client_fd);
 }
 
-void	Server::createChannel(Client *first_client, std::string ch_name) {
-	(void)first_client;
+void	Server::createChannel(std::string ch_name) {
 	std::pair<std::string, Channel *> channel_arg;
 	channel_arg.first = ch_name;
 	channel_arg.second = new Channel(ch_name);

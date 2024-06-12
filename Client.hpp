@@ -16,10 +16,12 @@ public :
 	void	setNick(bool check);
 	void	setUser(bool check);
 	void	setAllReady(bool check);
+	void	setDisconnect(bool check);
 	bool	getPass() const;
 	bool	getNick() const;
 	bool	getUser() const;
 	bool	getAllReady() const;
+	bool	getDisconnect() const;
 
 	int	getFd() const;
 	const std::string&	getNickname() const;
@@ -44,6 +46,7 @@ private :
 	bool		_nick;
 	bool		_user;
 	bool		_allready;
+	bool		_disconnect;
 	std::vector<std::string>	_message;
 	std::vector<std::string>	_joined_channel;
 };
