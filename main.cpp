@@ -32,6 +32,8 @@ int	main(int argc, char **argv) {
 					std::cerr << "client socket error" << "\n";
 					server.disconnectClient(curr_event->ident);
 				}
+			} else if (curr_event->filter == EVFILT_PROC && curr_event->fflags & NOTE_EXIT) {
+				server.disconnectClient(curr_event->ident);
 			} else if (curr_event->filter == EVFILT_READ) {
 				if (curr_event->ident == (unsigned long)(server.getFd()))
 					server.addClient(change_list);
