@@ -23,11 +23,11 @@ bool Channel::checkAuthority(Client* client) {
 void	Channel::plusOptI(Client* request_client) {
 	std::cout << "i option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_i = true;
@@ -37,11 +37,11 @@ void	Channel::plusOptI(Client* request_client) {
 void	Channel::plusOptT(Client* request_client) {
 	std::cout << "t option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_t = true;
@@ -51,11 +51,11 @@ void	Channel::plusOptT(Client* request_client) {
 void	Channel::plusOptK(Client* request_client, const std::string& key) {
 	std::cout << "+K+K+K+K+K+K" << key << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_k = key;
@@ -65,10 +65,10 @@ void	Channel::plusOptK(Client* request_client, const std::string& key) {
 void	Channel::plusOptL(Client* request_client, std::size_t limit) {
 	std::cout << "l option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	} else if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	} else if (_opt_l >= limit) {
 		return ;
@@ -83,16 +83,17 @@ void	Channel::plusOptL(Client* request_client, std::size_t limit) {
 void	Channel::plusOptO(Client* request_client, Client* target_client) {
 	std::cout << "o option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
+		// request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
 		return ;
 	}
 	it->second = true;
@@ -102,11 +103,11 @@ void	Channel::plusOptO(Client* request_client, Client* target_client) {
 void	Channel::minusOptI(Client* request_client) {
 	std::cout << "-i option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_i = false;
@@ -116,11 +117,11 @@ void	Channel::minusOptI(Client* request_client) {
 void	Channel::minusOptT(Client* request_client) {
 	std::cout << "-t option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_t = false;
@@ -130,11 +131,11 @@ void	Channel::minusOptT(Client* request_client) {
 void	Channel::minusOptK(Client* request_client) {
 	std::cout << "-k option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_k = "";
@@ -144,11 +145,11 @@ void	Channel::minusOptK(Client* request_client) {
 void	Channel::minusOptL(Client* request_client) {
 	std::cout << "-l option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	_opt_l = 0;
@@ -158,16 +159,17 @@ void	Channel::minusOptL(Client* request_client) {
 void	Channel::minusOptO(Client* request_client, Client* target_client) {
 	std::cout << "-o option called ~~~" << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
+		// request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
 		return ;
 	}
 	it->second = false;
@@ -220,11 +222,11 @@ void Channel::join(Client* new_client, const std::string& key) {
 // INVITE
 void	Channel::invite(Client* request_client, Client* target_client) {
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), target_client->getNickname());
@@ -244,11 +246,11 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 void	Channel::kick(Client* request_client, Client* target_client, const std::string& reason) {
 	std::cout << "request : " << request_client->getNickname() << "\n target : " << target_client->getNickname() << std::endl;
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
@@ -272,7 +274,7 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 // topic 설정 성공하면 0, topic-protection mode인데 권한이 없으면 1 반환
 void	Channel::topic(Client* request_client, const std::string& topic) {
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (topic == "") {
@@ -290,7 +292,7 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 		std::cout << "토픽 설정!!" << std::endl;
 		if (_opt_t == true && checkAuthority(request_client) == false) {
 			std::cout << "->토픽 설정 실패!!" << std::endl;
-			request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED));
+			request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 			return ;
 		} else {
 			// :<nick>!<user>@<host> TOPIC <channel> :<new topic>

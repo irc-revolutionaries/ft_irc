@@ -65,7 +65,7 @@ const std::string handleResponse(const std::string& nickname, int responseCode, 
 	    	message = ":" + g_server_name + " 471 " + nickname + " " + target + " " + ":Cannot join channel (+l)\r\n";
 			break;
 		case ERR_CHANOPRIVSNEEDED: //482
-			message = ":" + g_server_name + " 482 " + nickname + " " + target + " " + ":You're not channel operator\r\n";
+			message = ":" + g_server_name + " 482 " + /*nickname + " " + */target + " " + ":You're not channel operator\r\n";
 			break;
         case ERR_ERRONEUSNICKNAME: //432
             message = ":" + g_server_name + " 432 " + nickname + " " + target + " :Erroneous Nickname\r\n";
