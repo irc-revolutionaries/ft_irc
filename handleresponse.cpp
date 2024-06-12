@@ -146,6 +146,8 @@ const std::string handleResponse(const std::string& nickname, int responseCode, 
         case ERR_NOTREGISTERED: //451
             message = ":" + g_server_name + " 451 " + nickname + " :You have not registered\r\n";
             break;
+		case ERR_PASSWDMISMATCH: //464
+			message = ":" + g_server_name + " 464 * :Server Password incorrect\r\n";
 	}
 	return (message);
 }

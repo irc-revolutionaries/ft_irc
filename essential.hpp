@@ -61,6 +61,7 @@ enum e_msg {
 #define ERR_USERONCHANNEL		443
 #define ERR_UNKNOWNCOMMAND		421
 #define ERR_NOTREGISTERED		451
+#define	ERR_PASSWDMISMATCH		464
 
 //Command responses
 #define RPL_CHANNELMODEIS		324
