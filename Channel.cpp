@@ -239,7 +239,7 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 	// :<inviter_nick> INVITE <invitee_nick> <channel_name>
 	temp = ":" + request_client->getNickname() + " INVITE " + target_client->getNickname() + " " + _name + "\r\n";
 	target_client->setMessage(temp);
-	broadcast(handleResponse(request_client->getNickname(), RPL_INVITING));
+	broadcast(handleResponse(request_client->getNickname(), RPL_INVITING, _name, target_client->getNickname()));
 }
 
 // kick 성공하면 0, 권한이 없으면 1, 없는 client면 2 반환

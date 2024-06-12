@@ -125,7 +125,7 @@ const std::string handleResponse(const std::string& nickname, int responseCode, 
             message = ":" + g_server_name + " 324 " + nickname + " " + target + " " + ":Channel mode is " + additionalInfo + "\r\n";
             break;
         case RPL_INVITING: // 341
-            message = ":" + g_server_name + " 341 " + nickname + " " + target + " " + ":Inviting\r\n";
+            message = ":" + g_server_name + " 341 " + nickname + " " + additionalInfo + " " + target + "\r\n";
             break;
         case RPL_NOTOPIC: // 331
             message = ":" + g_server_name + " 331 " + nickname + " " + target + " " + ":No topic is set\r\n";
