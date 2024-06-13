@@ -179,18 +179,18 @@ void	Channel::minusOptO(Client* request_client, Client* target_client) {
 void Channel::join(Client* new_client, const std::string& key) {
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), new_client->getNickname());
 	if (_opt_i == true && it == _invite_list.end()) {
-		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_INVITEONLYCHAN));
+		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_INVITEONLYCHAN, _name));
 		return ;
 	}
 	if (_opt_k != "" && _opt_k != key) {
-		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_BADCHANNELKEY));
+		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_BADCHANNELKEY, _name));
 		return ;
 	}
 	if (_opt_l != 0 && _user_list.size() >= _opt_l) {
 		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_CHANNELISFULL, _name));
 		return ;
 	}
-	if (_opt_i == true)
+	if (_opt_i == true && it != _invite_list.end())
 		_invite_list.erase(it);
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_TOPIC, _name, _topic));
 	broadcast(messageFormat(JOIN, new_client, _name));
@@ -231,7 +231,7 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 	}
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), target_client->getNickname());
 	if (it != _invite_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERONCHANNEL));
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERONCHANNEL, _name));
 		return ;
 	}
 	_invite_list.push_back(target_client->getNickname());
@@ -244,7 +244,7 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 
 // kick 성공하면 0, 권한이 없으면 1, 없는 client면 2 반환
 void	Channel::kick(Client* request_client, Client* target_client, const std::string& reason) {
-	std::cout << "request : " << request_client->getNickname() << "\n target : " << target_client->getNickname() << std::endl;
+	// std::cout << "request : " << request_client->getNickname() << "\n target : " << target_client->getNickname() << std::endl;
 	if (checkChannelMember(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
@@ -281,7 +281,7 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 		std::cout << "토픽 delete!!" << std::endl;
 		if (_topic == "") {
 			std::cout << "->토픽 없음!!" << std::endl;
-			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_NOTOPIC));
+			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_NOTOPIC, _name));
 			return ;
 		} else {
 			std::cout << "->토픽 있음!!" << std::endl;
