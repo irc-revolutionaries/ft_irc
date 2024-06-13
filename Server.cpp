@@ -90,8 +90,11 @@ void    Server::makeCommand(int ident) {
     char    buf[MAX_BUF];
     ssize_t n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
 
-    if (n < 0) {
-        std::cerr << "client read error\n";
+    if (n <= 0) {
+		if (n < 0)
+        	std::cerr << "client read error\n";
+		else
+			std::cout << "client EOF\n";
 		disconnectClient(ident);
 	}
     else {
