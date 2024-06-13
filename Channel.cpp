@@ -193,6 +193,12 @@ void Channel::join(Client* new_client, const std::string& key) {
 	if (_opt_i == true && it != _invite_list.end())
 		_invite_list.erase(it);
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_TOPIC, _name, _topic));
+
+	if (_user_list.size() > 0) {
+		_user_list.insert(std::make_pair(new_client, false));
+	} else {
+		_user_list.insert(std::make_pair(new_client, true));
+	}
 	broadcast(messageFormat(JOIN, new_client, _name));
 	if (_user_list.size() > 0) {
 		std::string temp;
@@ -209,12 +215,8 @@ void Channel::join(Client* new_client, const std::string& key) {
 				temp += " " + it->first->getNickname();
 		}
 		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, temp));
-		_user_list.insert(std::make_pair(new_client, false));
 	} else
-	{
-		_user_list.insert(std::make_pair(new_client, true));
 		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, "@" + new_client->getNickname()));
-	}
 	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_ENDOFNAMES, _name));
 	new_client->setJoinedChannel(_name);
 }
