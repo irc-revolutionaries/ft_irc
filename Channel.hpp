@@ -42,6 +42,7 @@ public :
 	const std::string&	getTopic(void) const;
 
 	bool checkAuthority(Client* client);
+	void deleteInviteList(std::string del_name);
 private :
 	std::string					_name;
 	std::map<Client *, bool>	_user_list;

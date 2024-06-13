@@ -310,6 +310,7 @@ void	Channel::quit(Client* request_client, const std::string& message) {
 	if (it != _user_list.end()) {
 		broadcastWithoutClient(messageFormat(QUIT, request_client, message), request_client);
 		_user_list.erase(it);
+		deleteInviteList(request_client->getNickname());
 	}
 }
 
@@ -318,6 +319,7 @@ void	Channel::errorQuit(Client* request_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(request_client);
 	if (it != _user_list.end())
 		_user_list.erase(it);
+		deleteInviteList(request_client->getNickname());
 }
 
 // 채널의 모든 클라이언트들에게 메세지를 보냄
@@ -375,4 +377,10 @@ void	Channel::answerMode(Client* request_client) {
 	if (answer == "+")
 		answer = "";
 	request_client->setMessage(handleResponse(request_client->getNickname(), RPL_CHANNELMODEIS, _name, answer));	
+}
+
+void Channel::deleteInviteList(std::string del_name) {
+	std::vector<std::string>::iterator	it = std::find(_invite_list.begin(), _invite_list.end(), del_name);
+	if (it != _invite_list.end())
+		_invite_list.erase(it);
 }
