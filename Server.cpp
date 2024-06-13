@@ -90,10 +90,8 @@ void    Server::makeCommand(int ident) {
     char    buf[MAX_BUF];
     ssize_t n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
 
-    if (n < 0) {
+    if (n < 0)
         std::cerr << "client read error\n";
-		disconnectClient(ident);
-	}
     else {
         if (n < 512)
             buf[n] = '\0';
@@ -127,10 +125,6 @@ void	Server::sendMessage(int ident) {
 			}
 			it->second->clearMessage();
 		}
-		if (it->second->getDisconnect() == true) {
-			disconnectClient(ident);
-			return ;
-		}
 	}
 }
 
@@ -142,7 +136,8 @@ void	Server::disconnectClient(int client_fd) {
 	for (size_t i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
 		if (_channel_list[joined_channel[i]]->getUserList().size() == 0) {
-			deleteChannelList(joined_channel[i]);
+			delete _channel_list[joined_channel[i]];
+			_channel_list.erase(joined_channel[i]);
 		}
 	}
 	delete _client_list[client_fd];

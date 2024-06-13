@@ -51,7 +51,7 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 			else if (_cmd == "MODE")
 				mode(server, client);
 			else {
-				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, _cmd));
 			}
 		}
 		else {
@@ -82,10 +82,10 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	std::getline(col_ss, _cmd, ' ');//_cmd
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
 		//421
-		// if (client->getNick())
-		// 	client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
-		// else 
-		client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND));//ERR_UNKNOWNCOMMAND
+		if (client->getNick())
+			client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
+		else 
+			client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND, _cmd));//ERR_UNKNOWNCOMMAND
 		return false;
 	}
 	while (std::getline(col_ss, buf, ' ')) {
@@ -114,7 +114,7 @@ void Command::pass(Server& server, Client* client) {
 		client->setPass(true);
 	}
 	else {
-		client->setMessage(handleResponse(client->getNickname(), ERR_PASSWDMISMATCH));
+		client->setMessage(handleResponse("", ERR_PASSWDMISMATCH));
 		client->setDisconnect(true);
 	}
 }
@@ -125,7 +125,8 @@ void Command::nick(Server& server, Client* client) {
 	//NICK 변경가능 
 
 	if (client->getNick()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "NICK"));
+		return ;
 	}
 	if (_params.empty()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
@@ -165,7 +166,8 @@ void Command::nick(Server& server, Client* client) {
 void Command::user(Client* client) {
 	//USER <username> <hostname> <servername> :<realname>
 	if (client->getUser()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND));
+		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "USER"));
+		return ;
 	}
 	if (_params.size() < 4) { //<= 4 ?
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "USER"));
@@ -180,10 +182,6 @@ void Command::user(Client* client) {
 	client->setHostname(_params[1]);
 	client->setServername(_params[2]);
 	client->setRealname(_params[3]);
-	// client->setMessage(messageFormat(RPL_WELCOME, client));
-	// client->setMessage(messageFormat(RPL_YOURHOST, client));
-	// client->setMessage(messageFormat(RPL_CREATED, client, "Mon Jan 1 00:00:00 2020"));
-	// client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 x itklo"));
 	if (client->getNick() && client->getUser() && !client->getAllReady())
 		allready(client);
 }
@@ -216,7 +214,7 @@ void Command::join(Server& server, Client* client) {
 	//채널이름 #만있는거 안되게
 	while (std::getline(channel_ss, channel_name, ',')) {
 		if (channel_name[0] != '#'){
-			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
+			client->setMessage(handleResponse(channel_name, ERR_BADCHANMASK));
 			std::getline(key_ss, key, ',');//이거 한번 밀리니까 해야될듯?
 			continue ;
 		}
@@ -232,8 +230,14 @@ void Command::join(Server& server, Client* client) {
 	for (; it != key_map.end(); ++it){
 		std::string channel_name = it->first;
 		std::string channel_key = it->second;
-		if (channel_list.find(channel_name) != channel_list.end())
+		if (channel_list.find(channel_name) != channel_list.end()) {
+			std::vector<std::string> joined_ch = client->getJoinedChannel();
+			if (std::find(joined_ch.begin(), joined_ch.end(), channel_name) != joined_ch.end()) {
+				client->setMessage(handleResponse(client->getNickname(), ERR_USERONCHANNEL, channel_name));
+				continue ;
+			}
 			channel_list[channel_name]->join(client, channel_key);
+		}
 		else{
 			server.createChannel(channel_name);//못찾으면 채널생성,
 			std::map<std::string, Channel *> channel_list1 = server.getChannelList();
@@ -278,8 +282,17 @@ void	Command::kick(Server& server, Client* client){
 	}
 	std::string channel_name = _params[0];
 	std::string target_name = _params[1];
+	if (!channel_list[channel_name]->checkAuthority(client)) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_CHANOPRIVSNEEDED, channel_name));
+		return ;
+	}
+	if (channel_name == target_name) {
+        client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, target_name, channel_name));
+        return;
+    }
 	if (!server.findClient(target_name)) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, target_name, channel_name));
+		std::cout << "target name : " << target_name <<'\n';
+		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, target_name));
 		return ;
 	}
 	if (_params.size() >= 3) {
@@ -320,7 +333,7 @@ void	Command::quit(Server& server, Client* client) {
 	}
 	for (unsigned int i = 0; i < joined_channel.size(); ++i) {
 		channel_list[joined_channel[i]]->quit(client, _params[0]);//channel에서 유저를 지워
-		if (channel_list[joined_channel[i]]->getUserList().size() == 1) {
+		if (channel_list[joined_channel[i]]->getUserList().size() == 0) {
 			server.deleteChannelList(joined_channel[i]);
 		}
 	}
@@ -519,8 +532,12 @@ void	Command::mode(Server& server, Client* client) {
 		}
 	}
 	opt_reply += params_reply;
-	if (channel_list[channel_name]->checkAuthority(client) && !(opt_reply == "+" || opt_reply == "-"))
+	std::cout << opt_reply << '\n';
+	//-o에서 권한 사라지니까 안됨
+	if (channel_list[channel_name]->checkAuthority(client) && !(opt_reply == "+" || opt_reply == "-")) {
+		std::cout << "dasjlksjldjlks" << '\n';
 		channel_list[channel_name]->broadcast(messageFormat(MODE, client, channel_name, opt_reply));
+	}
 }
 
 void	Command::ping(Client* client) {
