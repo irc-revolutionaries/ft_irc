@@ -21,17 +21,17 @@ public :
 	void	answerMode(Client* request_client);
 
 	// 채널 옵션 설정 함수들
-	void	plusOptI(Client* request_client);
-	void	plusOptT(Client* request_client);
-	void	plusOptK(Client* request_client, const std::string& key);
-	void	plusOptL(Client* request_client, std::size_t limit);
+	void	plusOptI();
+	void	plusOptT();
+	void	plusOptK(const std::string& key);
+	void	plusOptL(std::size_t limit);
 	void	plusOptO(Client* request_client, Client* target_client);
 
 	// 채널 옵션 제거 함수들
-	void	minusOptI(Client* request_client);
-	void	minusOptT(Client* request_client);
-	void	minusOptK(Client* request_client);
-	void	minusOptL(Client* request_client);
+	void	minusOptI();
+	void	minusOptT();
+	void	minusOptK();
+	void	minusOptL();
 	void	minusOptO(Client* request_client, Client* target_client);
 
 	// 채널에 있는 클라이언트 map을 확인하는 함수
@@ -43,13 +43,13 @@ public :
 
 	bool checkAuthority(Client* client);
 	void deleteInviteList(std::string del_name);
+	bool checkChannelMember(Client* client);
 private :
 	std::string					_name;
 	std::map<Client *, bool>	_user_list;
 	std::string					_topic;
 	std::vector<std::string>	_invite_list;
 
-	bool checkChannelMember(Client* client);
 
 	// 옵션 관련 flag들
 	bool		_opt_i;
