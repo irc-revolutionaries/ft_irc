@@ -124,6 +124,7 @@ void	Server::sendMessage(int ident) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
 			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
+			std::cout << "send message : " << msg_vec[i];
 			if (n < 0 || it->second->getDisconnect() == true) {
 				disconnectClient(ident);
 				return ;
@@ -139,9 +140,12 @@ void	Server::sendMessage(int ident) {
 
 void	Server::disconnectClient(int client_fd) {
 	std::vector<std::string> joined_channel = _client_list[client_fd]->getJoinedChannel();
+	std::map<std::string, Channel *>::iterator it;
 
 	std::cout << "client disconnected: " << client_fd << "\n";
 	close(client_fd); //연결 종료
+	for (it = _channel_list.begin(); it != _channel_list.end(); ++it) 
+		_channel_list[it->first]->deleteInviteList(_client_list[client_fd]->getNickname());
 	for (size_t i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
 		if (_channel_list[joined_channel[i]]->getUserList().size() == 0) {
