@@ -69,7 +69,7 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 
 bool Command::parseCmd(Client* client, const std::string& msg) {
 	_params.clear();
-	_cmd = "";
+	_cmd.clear();
 	std::istringstream ss(msg);
 	std::string buf;
 	std::string tmp1;
@@ -136,7 +136,8 @@ void Command::nick(Server& server, Client* client) {
 	std::string nickname = _params[0];
 	// if (client->getNickname() == nickname)//같은닉네임으로 변경시도시 가만히
 	// 	return ;
-	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&') {
+	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&'
+		|| std::isdigit(nickname[0])) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
 	}
@@ -257,20 +258,16 @@ void	Command::invite(Server& server, Client* client){
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 	//client_list를 std::string, Client *로 갖고있어야함
 
-	if (!server.findClient(_params[0])){
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "INVITE"));
+	Client* invited_client = server.findClient(_params[0]);
+	if (!invited_client) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, _params[0]));
 		return ;
 	}
 	if (channel_list.find(_params[1]) == channel_list.end()){
 		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[1]));
 		return ;
 	}
-	Client* invited_client = server.findClient(_params[0]);
-	if (!invited_client) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, _params[0]));
-		return ;
-	}
-	channel_list[_params[1]]->invite(client, server.findClient(_params[0]));
+	channel_list[_params[1]]->invite(client, invited_client);
 }
 
 void	Command::kick(Server& server, Client* client){
@@ -425,10 +422,10 @@ void	Command::mode(Server& server, Client* client) {
 	size_t j = 0;
 	//여기 들어가기전에 권한 체크해야됨
 	std::map<Client *, bool> user_list = channel_list[channel_name]->getUserList();
-	// if (channel_list[channel_name]->checkChannelMember(client) == false) {
-	// 	client->setMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, channel_name));
-	// 	return ;
-	// }
+	if (channel_list[channel_name]->checkChannelMember(client) == false) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, channel_name));
+		return ;
+	}
 	if (channel_list[channel_name]->checkAuthority(client) == false) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_CHANOPRIVSNEEDED, channel_name));
 		return ;
@@ -439,27 +436,23 @@ void	Command::mode(Server& server, Client* client) {
 				if (opt[j] == 'i') {
 					if (opt_i)
 						continue ;
-					if (!channel_list[channel_name]->plusOptI(client)) {
-						opt_i =	true;
-						if (plus) {
-							reply += "+";
-							plus = false;
-						}
-						reply += "i";
-					} else
-						return ;
+					channel_list[channel_name]->plusOptI();
+					opt_i =	true;
+					if (plus) {
+						reply += "+";
+						plus = false;
+					}
+					reply += "i";
 				} else if (opt[j] == 't') {
 					if (opt_t)
 						continue ;
-					if (!channel_list[channel_name]->plusOptT(client)) {
-						opt_t = true;
-						if (plus) {
-							reply += "+";
-							plus = false;
-						}
-						reply += "t";
-					} else
-						return ;
+					channel_list[channel_name]->plusOptT();
+					opt_t = true;
+					if (plus) {
+						reply += "+";
+						plus = false;
+					}
+					reply += "t";
 				} else if (opt[j] == 'k') {
 					if (opt_k)
 						continue ;
@@ -467,17 +460,15 @@ void	Command::mode(Server& server, Client* client) {
 						client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 						continue ;
 					}
-					if (!channel_list[channel_name]->plusOptK(client, _params[params_order])) {
-						opt_k = true;
-						if (plus) {
-							reply += "+";
-							plus = false;
-						}
-						reply += "k";
-						params_reply += " " + _params[params_order];
-						++params_order;//이게 받은 인자 개수 넘으면?
-					} else
-						return ;
+					channel_list[channel_name]->plusOptK(_params[params_order]);
+					opt_k = true;
+					if (plus) {
+						reply += "+";
+						plus = false;
+					}
+					reply += "k";
+					params_reply += " " + _params[params_order];
+					++params_order;//이게 받은 인자 개수 넘으면?
 				} else if (opt[j] == 'o') {
 					if (opt_o)
 						continue ;
@@ -491,17 +482,15 @@ void	Command::mode(Server& server, Client* client) {
 						++params_order;
 						continue ;
 					}
-					if (!channel_list[channel_name]->plusOptO(client, target_client)) {
-						opt_o = true;
-						if (plus) {
-							reply += "+";
-							plus = false;
-						}
-						reply += "o";
-						params_reply += " " + _params[params_order];
-						++params_order;
-					} else
-						return ;
+					channel_list[channel_name]->plusOptO(client, target_client);
+					opt_o = true;
+					if (plus) {
+						reply += "+";
+						plus = false;
+					}
+					reply += "o";
+					params_reply += " " + _params[params_order];
+					++params_order;
 				} else if (opt[j] == 'l') {
 					if (opt_l)//params_order++?
 						continue ;
@@ -510,28 +499,29 @@ void	Command::mode(Server& server, Client* client) {
 						continue ;
 					}
 					long nb = std::atoi(_params[params_order].c_str());
+					std::cout << "number : " << nb <<'\n';
 					if (nb < 0) {
 						client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[params_order] + "three"));
 						std::cout << "opt before break : " << opt[i] << '\n';
 						params_order++;
 						continue ;
 					}
-					if (!channel_list[channel_name]->plusOptL(client, nb)) {
-						opt_l = true;
-						if (plus) {
-							reply += "+";
-							plus = false;
-						}
-						reply += "l";
-						params_reply += " " + _params[params_order];
-						++params_order;
-					} else
-						return ;
+					channel_list[channel_name]->plusOptL(nb);
+					opt_l = true;
+					if (plus) {
+						reply += "+";
+						plus = false;
+					}
+					reply += "l";
+					params_reply += " " + _params[params_order];
+					++params_order;
 				} else if (opt[j] == '-') {
 					minus = true;
 					break ;
+				} else if (opt[j] == '+') {
+					continue ;
 				} else {//플래그 아닌거
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i]) + "531"));
 					continue ;
 				}
 			}
@@ -540,39 +530,33 @@ void	Command::mode(Server& server, Client* client) {
 				if (opt[j] == 'i') {
 					if (opt_i)
 						continue ;
-					if (!channel_list[channel_name]->minusOptI(client)) {
-						opt_i =	true;
-						if (minus) {
-							reply += "-";
-							minus = false;
-						}
-						reply += "i";
-					} else
-						return ;
+					channel_list[channel_name]->minusOptI();
+					opt_i =	true;
+					if (minus) {
+						reply += "-";
+						minus = false;
+					}
+					reply += "i";
 				} else if (opt[j] == 't') {
 					if (opt_t)
 						continue ;
-					if (!channel_list[channel_name]->minusOptT(client)) {
-						opt_t = true;
-						if (minus) {
-							reply += "-";
-							minus = false;
-						}
-						reply += "t";
-					} else
-						return ;
+					channel_list[channel_name]->minusOptT();
+					opt_t = true;
+					if (minus) {
+						reply += "-";
+						minus = false;
+					}
+					reply += "t";
 				} else if (opt[j] == 'k') {
 					if (opt_k)
 						continue ;
-					if (!channel_list[channel_name]->minusOptK(client)) {
-						opt_k = true;
-						if (minus) {
-							reply += "-";
-							minus = false;
-						}
-						reply += "k";
-					} else
-						return ;
+					channel_list[channel_name]->minusOptK();
+					opt_k = true;
+					if (minus) {
+						reply += "-";
+						minus = false;
+					}
+					reply += "k";
 				} else if (opt[j] == 'o') {
 					if (opt_o)
 						continue ;
@@ -586,32 +570,30 @@ void	Command::mode(Server& server, Client* client) {
 						++params_order;
 						continue ;
 					}
-					if (!channel_list[channel_name]->minusOptO(client, target_client)) {
-						opt_o = true;
-						if (minus) {
-							reply += "-";
-							minus = false;
-						}
-						reply += "o";
-						params_reply += " " + _params[params_order];
-						++params_order;
-					} else
-						return ;
+					channel_list[channel_name]->minusOptO(client, target_client);
+					opt_o = true;
+					if (minus) {
+						reply += "-";
+						minus = false;
+					}
+					reply += "o";
+					params_reply += " " + _params[params_order];
+					++params_order;
 				} else if (opt[j] == 'l') {
 					if (opt_l)//params_order++?
 						continue ;
-					if (!channel_list[channel_name]->minusOptL(client)) {
-						opt_l = true;
-						if (minus) {
-							reply += "-";
-							minus = false;
-						}
-						reply += "l";
-					} else
-						return ;
+					channel_list[channel_name]->minusOptL();
+					opt_l = true;
+					if (minus) {
+						reply += "-";
+						minus = false;
+					}
+					reply += "l";
 				} else if (opt[j] == '+') {
 					plus = true;
 					break ;
+				} else if (opt[j] == '-') {
+					continue ;
 				} else {//플래그 아닌거
 					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
 					continue ;
@@ -622,7 +604,7 @@ void	Command::mode(Server& server, Client* client) {
 		std::cout << "opt : " << opt << ' ' << "i : " << i << " j : " << j <<'\n';
 	}
 	reply += params_reply;
-	std::cout << "reply : " << reply.size() << ' ' << reply << ' ' << reply[0] << '\n';
+	std::cout << "reply : " << reply<< '\n';
 	if (!(reply == "+" || reply == "-")) {
 		std::cout << "dasjlksjldjlks" << '\n';
 		channel_list[channel_name]->broadcast(messageFormat(MODE, client, channel_name, reply));
