@@ -20,17 +20,15 @@ Command::Command() {
 }
 
 void Command::handleCmd(Server& server, Client* client, const std::string& msg) {
-//이 함수를 통해서 command 호출
 	if (parseCmd(client, msg) == false)
 		return ;
 	if (_cmd == "PING")	{
 		ping(client);
 		return ;
 	}
-	//pass, nick, user 순서대로 됐는지 분기 쪼개야됨
 	if (_cmd == "PASS")
 		pass(server, client);
-	else if (client->getPass()) { //Pass true 여야 동작가능 
+	else if (client->getPass()) {
 		if (_cmd == "NICK")
 			nick(server, client);
 		else if (_cmd == "USER")
@@ -59,7 +57,7 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 			return ;
 		}
 	}
-	else {// pass 필요
+	else {
 		//pass를 입력안해서nick이 없는데 어떻게 response?
 		// 정보가 없을때 nickname 을 *로 표시
 		client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
@@ -76,16 +74,16 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	std::string col;
 	(void)client;
 
-	std::getline(ss, tmp1, ':');//command
-	std::getline(ss, col);//command
+	std::getline(ss, tmp1, ':');
+	std::getline(ss, col);
 	std::istringstream col_ss(tmp1);
-	std::getline(col_ss, _cmd, ' ');//_cmd
+	std::getline(col_ss, _cmd, ' ');
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
 		//421
 		if (client->getNick())
 			client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
 		else 
-			client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND, _cmd));//ERR_UNKNOWNCOMMAND
+			client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND, _cmd));
 		return false;
 	}
 	while (std::getline(col_ss, buf, ' ')) {
@@ -107,7 +105,7 @@ void Command::pass(Server& server, Client* client) {
 		client->setDisconnect(true);
 		return ;
 	}
-	if (client->getPass()) { //Pass 이미 쳤을때
+	if (client->getPass()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
 		return ;
 	}
@@ -123,8 +121,7 @@ void Command::pass(Server& server, Client* client) {
 void Command::nick(Server& server, Client* client) {
 	//NICK <nickname>
 	//want 코크풍선..
-	//NICK 변경가능 
-
+	//NICK 변경가능
 	if (client->getNick()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "NICK"));
 		return ;
@@ -134,8 +131,6 @@ void Command::nick(Server& server, Client* client) {
 		return ;
 	}
 	std::string nickname = _params[0];
-	// if (client->getNickname() == nickname)//같은닉네임으로 변경시도시 가만히
-	// 	return ;
 	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&'
 		|| std::isdigit(nickname[0])) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
@@ -148,7 +143,6 @@ void Command::nick(Server& server, Client* client) {
 			return ;
 		}
 	}
-	//중복 닉네임 고려 어떻게?
 	if (nickname.length() > 9) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
@@ -171,7 +165,7 @@ void Command::user(Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "USER"));
 		return ;
 	}
-	if (_params.size() < 4) { //<= 4 ?
+	if (_params.size() < 4) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "USER"));
 		return ;
 	}
@@ -207,21 +201,19 @@ void Command::join(Server& server, Client* client) {
 	}
 	std::map<std::string, std::string> key_map;
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
-	std::istringstream channel_ss(_params[0]);//channel 이름 만들때 확인필수
-	// std::istringstream key_ss(_params[1]);//있을수도 있고 없을수도있음
+	std::istringstream channel_ss(_params[0]);
 	std::istringstream key_ss(_params.size() > 1 ? _params[1] : "");
 	std::string channel_name;
 	std::string key;
 
-	//채널이름 #만있는거 안되게
 	while (std::getline(channel_ss, channel_name, ',')) {
 		if (channel_name[0] != '#'){
 			client->setMessage(handleResponse(channel_name, ERR_BADCHANMASK));
-			std::getline(key_ss, key, ',');//이거 한번 밀리니까 해야될듯?
+			std::getline(key_ss, key, ',');//< - 이거 괜찮음?
 			continue ;
 		}
 		if (channel_name.find(6) != std::string::npos
-			|| channel_name.find(':') != std::string::npos)//제어문자 6있을때
+			|| channel_name.find(':') != std::string::npos)
 			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 		if (!std::getline(key_ss, key, ','))
 			key = "";
@@ -241,9 +233,8 @@ void Command::join(Server& server, Client* client) {
 			channel_list[channel_name]->join(client, channel_key);
 		}
 		else{
-			server.createChannel(channel_name);//못찾으면 채널생성,
+			server.createChannel(channel_name);
 			std::map<std::string, Channel *> channel_list1 = server.getChannelList();
-			std::cout << "after make channel* " << channel_list1[channel_name] << '\n';
 			channel_list1[channel_name]->join(client, channel_key);
 		}
 	}
@@ -256,8 +247,6 @@ void	Command::invite(Server& server, Client* client){
         return;
     }
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
-	//client_list를 std::string, Client *로 갖고있어야함
-
 	Client* invited_client = server.findClient(_params[0]);
 	if (!invited_client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, _params[0]));
@@ -329,7 +318,7 @@ void	Command::quit(Server& server, Client* client) {
 		return ;
 	}
 	for (unsigned int i = 0; i < joined_channel.size(); ++i) {
-		channel_list[joined_channel[i]]->quit(client, _params[0]);//channel에서 유저를 지워
+		channel_list[joined_channel[i]]->quit(client, _params[0]);
 		if (channel_list[joined_channel[i]]->getUserList().size() == 0) {
 			server.deleteChannelList(joined_channel[i]);
 		}
@@ -352,14 +341,14 @@ void	Command::privmsg(Server& server, Client* client) {
 	std::istringstream ss(_params[0]);
 	while (std::getline(ss, receiver, ',')) {
 		std::vector<std::string>::iterator it = std::find(joined_channel.begin(), joined_channel.end(), receiver);
-		if (receiver[0] == '#') {//receiver가 채널일때
-			if (channel_list.find(receiver) == channel_list.end())//채널이 존재하지 않을때
+		if (receiver[0] == '#') {
+			if (channel_list.find(receiver) == channel_list.end())
 				client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, receiver));
-			else if (it == joined_channel.end())//채널은 존재하는데, 참여하지 않은 상태에서
+			else if (it == joined_channel.end())
 				client->setMessage(handleResponse(client->getNickname(), ERR_CANNOTSENDTOCHAN, receiver));
 			else
 				channel_list[receiver]->broadcastWithoutClient(messageFormat(PRIVMSG, client, receiver, msg), client);//여기에다가 포맷 맞춰서 보내기
-		} else {//receiver가 client
+		} else {
 			if (receiver == "bot") {
 				excuteBot(client);
 				return ;
@@ -384,7 +373,6 @@ void	Command::mode(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 		return ;
 	}
-	//MODE <channel>일떄 answerMode()
 	if (_params.size() == 1) {
 		if (channel_list.find(_params[0]) != channel_list.end()) {
 			channel_list[_params[0]]->answerMode(client);
@@ -400,8 +388,8 @@ void	Command::mode(Server& server, Client* client) {
 		return ;
 	}
 	std::string opt = _params[1];
-	size_t pos_plus = opt.find('+');//둘중 작은값으로 시작
-	size_t pos_minus = opt.find('-');//둘중 작은값으로 시작
+	size_t pos_plus = opt.find('+');
+	size_t pos_minus = opt.find('-');
 	if (pos_plus == std::string::npos && pos_minus == std::string::npos) {
 		// UNKNOWNMODE 472
 		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
@@ -410,7 +398,6 @@ void	Command::mode(Server& server, Client* client) {
 	std::string reply = std::string(1, opt[0]);
 	std::cout << "opt : " << opt << '\n';
 	std::string params_reply;
-	// bool flag = false; //Authority check?
 	bool opt_i = false;
 	bool opt_t = false;
 	bool opt_k = false;
@@ -420,7 +407,7 @@ void	Command::mode(Server& server, Client* client) {
 	bool plus = false;
 	std::size_t	params_order = 2;
 	size_t j = 0;
-	//여기 들어가기전에 권한 체크해야됨
+
 	std::map<Client *, bool> user_list = channel_list[channel_name]->getUserList();
 	if (channel_list[channel_name]->checkChannelMember(client) == false) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, channel_name));
@@ -468,7 +455,7 @@ void	Command::mode(Server& server, Client* client) {
 					}
 					reply += "k";
 					params_reply += " " + _params[params_order];
-					++params_order;//이게 받은 인자 개수 넘으면?
+					++params_order;
 				} else if (opt[j] == 'o') {
 					if (opt_o)
 						continue ;
@@ -499,10 +486,8 @@ void	Command::mode(Server& server, Client* client) {
 						continue ;
 					}
 					long nb = std::atol(_params[params_order].c_str());
-					std::cout << "number : " << nb <<'\n';
 					if (nb <= 0) {
 						client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[params_order]));
-						std::cout << "opt before break : " << opt[i] << '\n';
 						params_order++;
 						continue ;
 					}
@@ -522,7 +507,7 @@ void	Command::mode(Server& server, Client* client) {
 					break ;
 				} else if (opt[j] == '+') {
 					continue ;
-				} else {//플래그 아닌거
+				} else {
 					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
 					continue ;
 				}
@@ -582,7 +567,7 @@ void	Command::mode(Server& server, Client* client) {
 					params_reply += " " + _params[params_order];
 					++params_order;
 				} else if (opt[j] == 'l') {
-					if (opt_l)//params_order++?
+					if (opt_l)
 						continue ;
 					channel_list[channel_name]->minusOptL();
 					opt_l = true;
@@ -596,21 +581,17 @@ void	Command::mode(Server& server, Client* client) {
 					break ;
 				} else if (opt[j] == '-') {
 					continue ;
-				} else {//플래그 아닌거
+				} else {
 					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
 					continue ;
 				}
 			}
 		}
 		i = j;
-		std::cout << "opt : " << opt << ' ' << "i : " << i << " j : " << j <<'\n';
 	}
 	reply += params_reply;
-	std::cout << "reply : " << reply<< '\n';
-	if (!(reply == "+" || reply == "-")) {
-		std::cout << "dasjlksjldjlks" << '\n';
+	if (!(reply == "+" || reply == "-"))
 		channel_list[channel_name]->broadcast(messageFormat(MODE, client, channel_name, reply));
-	}
 }
 
 void	Command::ping(Client* client) {
