@@ -73,11 +73,6 @@ bool	Channel::plusOptL(Client* request_client, std::size_t limit) {
 	} else if (checkAuthority(request_client) == false) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return true;
-	} else if (_opt_l >= limit) {
-		return false;
-	} else if (_user_list.size() > limit) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANNELISFULL, _name));
-		return false;
 	}
 	_opt_l = limit;
 	return false;
@@ -373,9 +368,6 @@ void	Channel::answerMode(Client* request_client) {
 	answer = answer_vec[0];
 	for (std::size_t i = 1; i < answer_vec.size(); i++)
 		answer += " " + answer_vec[i];
-
-	if (answer == "+")
-		answer = "";
 	request_client->setMessage(handleResponse(request_client->getNickname(), RPL_CHANNELMODEIS, _name, answer));	
 }
 

@@ -122,7 +122,7 @@ const std::string handleResponse(const std::string& nickname, int responseCode, 
     		message = ":" + g_server_name + " 443 " + nickname + " " + target + " " + ":User is already on that channel\r\n";
     		break;
 		case RPL_CHANNELMODEIS: // 324
-            message = ":" + g_server_name + " 324 " + nickname + " " + target + " " + ":Channel mode is " + additionalInfo + "\r\n";
+            message = ":" + g_server_name + " 324 " + nickname + " " + target + " " + ":" + additionalInfo + "\r\n";
             break;
         case RPL_INVITING: // 341
             message = ":" + g_server_name + " 341 " + nickname + " " + additionalInfo + " " + target + "\r\n";
