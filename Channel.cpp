@@ -20,164 +20,164 @@ bool Channel::checkAuthority(Client* client) {
 }
 
 // i 옵션 설정되면 0, 권한이 없으면 1 반환
-bool	Channel::plusOptI(Client* request_client) {
+void	Channel::plusOptI(Client* request_client) {
 	std::cout << "i option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_i = true;
-	return false;
+	// return false;
 }
 
 // t 옵션 설정되면 0, 권한이 없으면 1 반환
-bool	Channel::plusOptT(Client* request_client) {
+void	Channel::plusOptT(Client* request_client) {
 	std::cout << "t option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_t = true;
-	return false;
+	// return false;
 }
 
 // k 옵션 설정되면 0, 권한이 없으면 1 반환
-bool	Channel::plusOptK(Client* request_client, const std::string& key) {
+void	Channel::plusOptK(Client* request_client, const std::string& key) {
 	std::cout << "+K+K+K+K+K+K" << key << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_k = key;
-	return false;
+	// return false;
 }
 
 // l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
-bool	Channel::plusOptL(Client* request_client, std::size_t limit) {
+void	Channel::plusOptL(Client* request_client, std::size_t limit) {
 	std::cout << "l option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	} else if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// } else if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_l = limit;
-	return false;
+	// return false;
 }
 
 // o 옵션 설정되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
-bool	Channel::plusOptO(Client* request_client, Client* target_client) {
+void	Channel::plusOptO(Client* request_client, Client* target_client) {
 	std::cout << "o option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
 		// request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
-		return false;
+		return ;
 	}
 	it->second = true;
-	return false;
+	// return false;
 }
 
 // i 옵션 제거되면 0, 권한이 없으면 1 반환
-bool	Channel::minusOptI(Client* request_client) {
+void	Channel::minusOptI(Client* request_client) {
 	std::cout << "-i option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_i = false;
-	return false;
+	// return false;
 }
 
 // t 옵션 제거되면 0, 권한이 없으면 1 반환
-bool	Channel::minusOptT(Client* request_client) {
+void	Channel::minusOptT(Client* request_client) {
 	std::cout << "-t option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_t = false;
-	return false;
+	// return false;
 }
 
 // k 옵션 제거되면 0, 권한이 없으면 1 반환
-bool	Channel::minusOptK(Client* request_client) {
+void	Channel::minusOptK(Client* request_client) {
 	std::cout << "-k option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_k = "";
-	return false;
+	// return false;
 }
 
 // l 옵션 제거되면 0, 권한이 없으면 1 반환
-bool	Channel::minusOptL(Client* request_client) {
+void	Channel::minusOptL(Client* request_client) {
 	std::cout << "-l option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	_opt_l = 0;
-	return false;
+	// return false;
 }
 
 // o 옵션 제거되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
-bool	Channel::minusOptO(Client* request_client, Client* target_client) {
+void	Channel::minusOptO(Client* request_client, Client* target_client) {
 	std::cout << "-o option called ~~~" << std::endl;
-	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
-		return true;
-	}
-	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-		return true;
-	}
+	// if (checkChannelMember(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+	// 	return true;
+	// }
+	// if (checkAuthority(request_client) == false) {
+	// 	request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+	// 	return true;
+	// }
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
 		// request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL));
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
-		return false;
+		return ;
 	}
 	it->second = false;
-	return false;
+	// return false;
 }
 
 // join 성공하면 0, invite-only + invite 못 받았으면 1, key가 틀렸으면 2, 인원수 초과면 3 반환
