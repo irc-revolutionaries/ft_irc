@@ -498,10 +498,10 @@ void	Command::mode(Server& server, Client* client) {
 						client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 						continue ;
 					}
-					long nb = std::atoi(_params[params_order].c_str());
+					long nb = std::atol(_params[params_order].c_str());
 					std::cout << "number : " << nb <<'\n';
-					if (nb < 0) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[params_order] + "three"));
+					if (nb <= 0) {
+						client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[params_order]));
 						std::cout << "opt before break : " << opt[i] << '\n';
 						params_order++;
 						continue ;
@@ -513,7 +513,9 @@ void	Command::mode(Server& server, Client* client) {
 						plus = false;
 					}
 					reply += "l";
-					params_reply += " " + _params[params_order];
+					std::stringstream tostring;
+					tostring << nb;
+					params_reply += " " + tostring.str();
 					++params_order;
 				} else if (opt[j] == '-') {
 					minus = true;
@@ -521,7 +523,7 @@ void	Command::mode(Server& server, Client* client) {
 				} else if (opt[j] == '+') {
 					continue ;
 				} else {//플래그 아닌거
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i]) + "531"));
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
 					continue ;
 				}
 			}
