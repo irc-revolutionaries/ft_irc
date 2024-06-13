@@ -277,34 +277,18 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
-	if (topic == "") {
-		std::cout << "토픽 delete!!" << std::endl;
-		if (_topic == "") {
-			std::cout << "->토픽 없음!!" << std::endl;
-			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_NOTOPIC, _name));
-			return ;
-		} else {
-			std::cout << "->토픽 있음!!" << std::endl;
-			request_client->setMessage(handleResponse(request_client->getNickname(), RPL_TOPIC, _name, _topic));
-			return ;
-		}
+	if (_opt_t == true && checkAuthority(request_client) == false) {
+		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+		return ;
 	} else {
-		std::cout << "토픽 설정!!" << std::endl;
-		if (_opt_t == true && checkAuthority(request_client) == false) {
-			std::cout << "->토픽 설정 실패!!" << std::endl;
-			request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
-			return ;
-		} else {
-			// :<nick>!<user>@<host> TOPIC <channel> :<new topic>
-			std::cout << "->토픽 설정 성공!!" << std::endl;
-			std::string temp;
-			temp = ":" + request_client->getNickname() + "!" + request_client->getUsername() \
-					+ "@" + request_client->getHostname() + " TOPIC " + _name + " :" \
-					+ topic + "\r\n";
-			broadcast(temp);
-			_topic = topic;
-			return ;
-		}
+		// :<nick>!<user>@<host> TOPIC <channel> :<new topic>
+		std::string temp;
+		temp = ":" + request_client->getNickname() + "!" + request_client->getUsername() \
+				+ "@" + request_client->getHostname() + " TOPIC " + _name + " :" \
+				+ topic + "\r\n";
+		broadcast(temp);
+		_topic = topic;
+		return ;
 	}
 }
 
