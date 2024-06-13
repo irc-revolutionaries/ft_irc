@@ -21,18 +21,18 @@ public :
 	void	answerMode(Client* request_client);
 
 	// 채널 옵션 설정 함수들
-	void	plusOptI(Client* request_client);
-	void	plusOptT(Client* request_client);
-	void	plusOptK(Client* request_client, const std::string& key);
-	void	plusOptL(Client* request_client, std::size_t limit);
-	void	plusOptO(Client* request_client, Client* target_client);
+	bool	plusOptI(Client* request_client);
+	bool	plusOptT(Client* request_client);
+	bool	plusOptK(Client* request_client, const std::string& key);
+	bool	plusOptL(Client* request_client, std::size_t limit);
+	bool	plusOptO(Client* request_client, Client* target_client);
 
 	// 채널 옵션 제거 함수들
-	void	minusOptI(Client* request_client);
-	void	minusOptT(Client* request_client);
-	void	minusOptK(Client* request_client);
-	void	minusOptL(Client* request_client);
-	void	minusOptO(Client* request_client, Client* target_client);
+	bool	minusOptI(Client* request_client);
+	bool	minusOptT(Client* request_client);
+	bool	minusOptK(Client* request_client);
+	bool	minusOptL(Client* request_client);
+	bool	minusOptO(Client* request_client, Client* target_client);
 
 	// 채널에 있는 클라이언트 map을 확인하는 함수
 	const std::map<Client *, bool>	&getUserList(void) const;
