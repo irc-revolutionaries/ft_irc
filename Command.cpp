@@ -630,7 +630,7 @@ void	Command::part(Server& server, Client* client) {
 			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 			continue ;
 		}
-		channel_list[channel_name]->part(client, channel_name);
+		channel_list[channel_name]->part(client);
 	}
 	if (channel_list[channel_name]->getUserList().size() == 0)
 		server.deleteChannelList(channel_name);
