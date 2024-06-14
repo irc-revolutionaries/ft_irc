@@ -24,6 +24,7 @@ public :
 	void	quit(Server& server, Client* client);
 	void	privmsg(Server& server, Client* client);
 	void	mode(Server& server, Client* client);
+	void	part(Server& server, Client* client);
 	void	ping(Client* client);
 	void	allready(Client* client);
 

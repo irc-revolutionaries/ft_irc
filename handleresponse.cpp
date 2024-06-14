@@ -27,7 +27,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo + "\r\n";
 			break;
         case NICK: //901
-			message = ":" + nickname + " NICK " + target + " :" + "\r\n";
+			message = ":" + nickname + " NICK " + ":" + target + "\r\n";
             break;
         case JOIN: //902
 			message = ":" + nickname + " JOIN " + ":" + target + "\r\n";
@@ -40,6 +40,9 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			break;
 		case MODE: //905
 			message = ":" + nickname + " MODE " + target + " " + additionalInfo + "\r\n";
+			break;
+		case PART: //905
+			message = ":" + nickname + " PART " + target + " " + "\r\n";
 			break;
 	}
 	return (message);
