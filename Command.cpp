@@ -395,16 +395,19 @@ void	Command::mode(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
 		return ;
 	}
-	std::string reply = std::string(1, opt[0]);
-	std::cout << "opt : " << opt << '\n';
+	std::string reply;
 	std::string params_reply;
 	bool opt_i = false;
 	bool opt_t = false;
 	bool opt_k = false;
 	bool opt_o = false;
 	bool opt_l = false;
-	bool minus = false;
 	bool plus = false;
+	bool minus = false;
+	if (opt[0] == '+')
+		plus = true;
+	else if (opt[0] == '-')
+		minus = true;
 	std::size_t	params_order = 2;
 	size_t j = 0;
 
@@ -508,7 +511,7 @@ void	Command::mode(Server& server, Client* client) {
 				} else if (opt[j] == '+') {
 					continue ;
 				} else {
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[j])));
 					continue ;
 				}
 			}
@@ -582,12 +585,16 @@ void	Command::mode(Server& server, Client* client) {
 				} else if (opt[j] == '-') {
 					continue ;
 				} else {
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[i])));
+					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[j])));
 					continue ;
 				}
 			}
 		}
-		i = j;
+		if (opt[i] != '+' && opt[i] != '-')
+			i++;
+		else
+			i = j;
+		std::cout << opt << ' ' << i << ' ' << j << '\n';
 	}
 	reply += params_reply;
 	if (!(reply == "+" || reply == "-"))
