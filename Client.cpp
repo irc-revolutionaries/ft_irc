@@ -3,23 +3,25 @@
 Client::Client(int fd)
 : _fd(fd), _pass(false), _nick(false), _user(false), _allready(false), _disconnect(false) {}
 
-void	Client::setNickname(const std::string& nickname) { this->_nickname = nickname; }
-void	Client::setUsername(const std::string& username) { this->_username = username; }
-void	Client::setRealname(const std::string& realname) { this->_realname = realname; }
-void	Client::setHostname(const std::string& hostname) { this->_hostname = hostname; }
-void	Client::setServername(const std::string& servername) { this->_servername = servername; }
-void	Client::setMessage(const std::string& message) { this->_message.push_back(message); }
-void	Client::setPass(bool check) { this->_pass = check; }
-void	Client::setNick(bool check) { this->_nick = check; }
-void	Client::setUser(bool check) { this->_user = check; }
-void	Client::setAllReady(bool check) { this->_allready = check; }
-void	Client::setDisconnect(bool check) { this->_disconnect = check; }
+void	Client::setNickname(const std::string& nickname) { _nickname = nickname; }
+void	Client::setUsername(const std::string& username) { _username = username; }
+void	Client::setRealname(const std::string& realname) { _realname = realname; }
+void	Client::setHostname(const std::string& hostname) { _hostname = hostname; }
+void	Client::setCommand(const std::string& command) { _command = command; }
+void	Client::setServername(const std::string& servername) { _servername = servername; }
+void	Client::setMessage(const std::string& message) { _message.push_back(message); }
+void	Client::setPass(bool check) { _pass = check; }
+void	Client::setNick(bool check) { _nick = check; }
+void	Client::setUser(bool check) { _user = check; }
+void	Client::setAllReady(bool check) { _allready = check; }
+void	Client::setDisconnect(bool check) { _disconnect = check; }
 
 int	Client::getFd() const { return (_fd); }
 const std::string&	Client::getNickname() const { return (_nickname); }
 const std::string&	Client::getUsername() const { return (_username); }
 const std::string&	Client::getRealname() const { return (_realname); }
 const std::string&	Client::getHostname() const { return (_hostname); }
+const std::string&	Client::getCommand() const { return (_command); }
 const std::string&	Client::getServername() const { return (_servername); }
 const std::vector<std::string>&	Client::getMessage() const { return (_message); }
 bool	Client::getPass() const { return (_pass); }

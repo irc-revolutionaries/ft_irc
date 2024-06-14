@@ -9,7 +9,10 @@ Server::Server(const char* port, const char* password) {
 	for (int i = 0; port[i]; ++i)
 		if (!isdigit(port[i]))
 			exitMessage("port number error");
-	_port = atoi(port);
+	std::string str = port;
+	if (str.size() > 5)
+		exitMessage("Port number error\n Please input 1024 ~ 49151");
+	_port = std::atoi(port);
 	if (_port < 1024 || _port > 49151)
 		exitMessage("Port number error\n Please input 1024 ~ 49151");
 	_password = password;
@@ -34,7 +37,7 @@ int		Server::getPort() const { return (_port); }
 int		Server::getKq() const { return (_kq); }
 
 //서버 소켓 설정
-void	Server::setServer(std::vector<struct kevent>& change_list) {
+void	Server::setServer() {
 	int	option = 1;
 
 	//소켓 생성
@@ -56,7 +59,9 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//소켓을 수신 대기 상대로 만들기
 	if (listen(_fd, 5) == -1)
 		exitMessage("listen error");
-	fcntl(_fd, F_SETFL, O_NONBLOCK); //소켓 non-blocking 설정
+	
+	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == -1) //소켓 non-blocking 설정
+		exitMessage("Server Socket fcntl error");
 	
 	//kqueue 생성
 	_kq = kqueue();
@@ -64,21 +69,28 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 		exitMessage("kqueue error");
 	//kevent 저장 벡터, 이벤트를 감시할 식별자, 이벤트 필터, 이벤트 플래그(새로운 이벤트 추가, 이벤트 활성화)
 	std::cout << "kqueue create\n";
-	changeEvents(change_list, _fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	changeEvents(_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	std::cout << "Server started\n";
 }
 
-void	Server::addClient(std::vector<struct kevent>& change_list) {
+void	Server::addClient() {
 	int	client_fd;
 
 	//클라이언트 소켓 연결
 	client_fd = accept(_fd, NULL, NULL);
-	if (client_fd == -1)
-		exitMessage("accept error");
+	if (client_fd == -1) {
+		std::cerr << "Client accept error\n";
+		return ;
+	}
 	std::cout << "accept new clinet: " << client_fd << "\n";
-	fcntl(client_fd, F_SETFL, O_NONBLOCK); //non-blocking 모드
-	changeEvents(change_list, client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	changeEvents(change_list, client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1) {
+		std::cerr << "Client Socket fcntl error\n";
+		close(client_fd);
+		return ;
+	}
+		
+	changeEvents(client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	changeEvents(client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
 	//클라이언트 추가
 	Client *new_client = new Client(client_fd);
@@ -89,6 +101,7 @@ void    Server::makeCommand(int ident) {
     Command cmd;
     char    buf[MAX_BUF];
     ssize_t n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
+	Client *client = _client_list[ident];
 
     if (n <= 0) {
 		if (n < 0)
@@ -102,18 +115,19 @@ void    Server::makeCommand(int ident) {
             buf[n] = '\0';
         else
             buf[n - 1] = '\0';
-        _command += buf;
-        if (_command.find('\n') != std::string::npos || _command.find('\r') != std::string::npos) {
-			std::istringstream iss(_command);
+		client->setCommand(client->getCommand() + buf);
+        if (client->getCommand().find('\n') != std::string::npos ||\
+			client->getCommand().find('\r') != std::string::npos) {
+			std::istringstream iss(client->getCommand());
 			std::string tmp;
-			if (_command.find('\n') != std::string::npos) {
+			if (client->getCommand().find('\n') != std::string::npos) {
 				while (std::getline(iss, tmp, '\n')) {
-					tmp.replace(tmp.find("\r"), tmp.length(), "");
-					std::cout << "\n_command : " << _command;
+					tmp.replace(tmp.find("\r"), 1, "");
+					std::cout << "\nCommand : " << tmp;
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
 			}
-            _command = "";
+            client->setCommand("");
         }
     }
 }
@@ -123,14 +137,20 @@ void	Server::sendMessage(int ident) {
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
-			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
-			std::cout << "send message : " << msg_vec[i];
-			if (n < 0 || it->second->getDisconnect() == true) {
-				disconnectClient(ident);
-				return ;
+			size_t send_size = 0;
+			ssize_t n = 0;
+			while (send_size < msg_vec[i].length()) {
+				n = send(ident, msg_vec[i].c_str() + send_size, msg_vec[i].length(), 0);
+				if (n < 0) {
+					std::cerr << "Send error\n";
+					disconnectClient(ident);
+					return ;
+				}
+				send_size += n;
 			}
-			it->second->clearMessage();
+			std::cout << "Send message : " << msg_vec[i];
 		}
+		it->second->clearMessage();
 		if (it->second->getDisconnect() == true) {
 			disconnectClient(ident);
 			return ;
@@ -163,6 +183,20 @@ void	Server::createChannel(std::string ch_name) {
 	_channel_list.insert(channel_arg);
 }
 
+void	Server::deleteChannelList(std::string ch_name) {
+	delete _channel_list.find(ch_name)->second;
+	_channel_list.erase(ch_name);
+}
+
+//kevent 구조체 세팅, 감지 이벤트 리스트 추가
+void	Server::changeEvents(uintptr_t ident, int16_t filter, \
+			uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
+	struct kevent temp_event;
+
+    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+    _change_list.push_back(temp_event);
+}
+
 //클라이언트의 nickname으로 find
 Client* Server::findClient(const std::string& name) {
 	std::map<int, Client *>::iterator it;
@@ -172,21 +206,40 @@ Client* Server::findClient(const std::string& name) {
 	return (NULL);
 }
 
+void	Server::startServer() {
+	struct kevent	event_list[EVENT_MAX];
+	struct kevent*	curr_event;
+	int	new_events;
+
+	this->setServer();
+	while (true) {
+		new_events = kevent(_kq, &_change_list[0], _change_list.size(), \
+				event_list, EVENT_MAX, NULL);
+		if (new_events == -1)
+			exitMessage("kevent error");
+		_change_list.clear();
+
+		for (int i = 0; i < new_events; ++i) {
+			curr_event = &event_list[i];
+			if (curr_event->flags & EV_ERROR) {
+				if (curr_event->ident == (unsigned long)(_fd))
+					exitMessage("server socket error");
+				else {
+					std::cerr << "client socket error" << "\n";
+					this->disconnectClient(curr_event->ident);
+				}
+			} else if (curr_event->filter == EVFILT_READ) {
+				if (curr_event->ident == (unsigned long)(_fd))
+					this->addClient();
+				else if (_client_list.find(curr_event->ident) != _client_list.end())
+					this->makeCommand(curr_event->ident);
+			} else if (curr_event->filter == EVFILT_WRITE)
+				this->sendMessage(curr_event->ident);
+		}
+	}
+}
+
 void	exitMessage(const std::string& msg) {
 	std::cerr << msg << "\n";
 	exit(EXIT_FAILURE);
-}
-
-//kevent 구조체 세팅, 감지 이벤트 리스트 추가
-void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
-        uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
-    struct kevent temp_event;
-
-    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-    change_list.push_back(temp_event);	
-}
-
-void	Server::deleteChannelList(std::string ch_name) {
-	delete _channel_list.find(ch_name)->second;
-	_channel_list.erase(ch_name);
 }
