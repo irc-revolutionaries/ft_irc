@@ -26,7 +26,8 @@ enum e_msg {
 	JOIN,
 	QUIT,
 	PONG,
-	MODE
+	MODE,
+	PART
 };
 
 #define RPL_WELCOME 0
