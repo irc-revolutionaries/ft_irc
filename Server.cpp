@@ -6,10 +6,11 @@
 std::string g_server_name;
 
 Server::Server(const char* port, const char* password) {
+	std::string str = port;
+
 	for (int i = 0; port[i]; ++i)
 		if (!isdigit(port[i]))
 			exitMessage("port number error");
-	std::string str = port;
 	if (str.size() > 5)
 		exitMessage("Port number error\n Please input 1024 ~ 49151");
 	_port = std::atoi(port);
@@ -22,6 +23,7 @@ Server::Server(const char* port, const char* password) {
 
 Server::~Server() {
 	std::map<int, Client *>::iterator it;
+
 	for (it = _client_list.begin(); it != _client_list.end(); it++) {
 		close(it->first);
 		delete _client_list[it->first];
@@ -42,9 +44,8 @@ void	Server::setServer() {
 
 	//소켓 생성
 	_fd = socket(PF_INET, SOCK_STREAM, 0);
-	std::cout << "socket create\n";
 	if (int(_fd) == -1)
-		exitMessage("socket error\n" + std::string(strerror(errno)));
+		exitMessage("Socket error");
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, (void *)(&option), sizeof(option));
 	
 	memset(&_server_addr, 0, sizeof(_server_addr));
@@ -54,7 +55,6 @@ void	Server::setServer() {
 	//소켓에 주소 할당
 	if (bind(_fd, (struct sockaddr *)(&_server_addr), sizeof(_server_addr)) == -1)
 		exitMessage("bind error");
-	std::cout << "bind address\n";
 	
 	//소켓을 수신 대기 상대로 만들기
 	if (listen(_fd, 5) == -1)
@@ -68,9 +68,7 @@ void	Server::setServer() {
 	if (_kq == -1)
 		exitMessage("kqueue error");
 	//kevent 저장 벡터, 이벤트를 감시할 식별자, 이벤트 필터, 이벤트 플래그(새로운 이벤트 추가, 이벤트 활성화)
-	std::cout << "kqueue create\n";
 	changeEvents(_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	std::cout << "Server started\n";
 }
 
 void	Server::addClient() {
@@ -78,11 +76,8 @@ void	Server::addClient() {
 
 	//클라이언트 소켓 연결
 	client_fd = accept(_fd, NULL, NULL);
-	if (client_fd == -1) {
-		std::cerr << "Client accept error\n";
-		return ;
-	}
-	std::cout << "accept new clinet: " << client_fd << "\n";
+	if (client_fd == -1) 
+		exitMessage("Client accept error");
 	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1) {
 		std::cerr << "Client Socket fcntl error\n";
 		close(client_fd);
@@ -109,12 +104,8 @@ void    Server::makeCommand(int ident) {
 		else
 			std::cout << "client EOF\n";
 		disconnectClient(ident);
-	}
-    else {
-        if (n < 512)
-            buf[n] = '\0';
-        else
-            buf[n - 1] = '\0';
+	} else {
+		(n < 512) ? buf[n] = 0 : buf[n - 1] = 0;
 		client->setCommand(client->getCommand() + buf);
         if (client->getCommand().find('\n') != std::string::npos ||\
 			client->getCommand().find('\r') != std::string::npos) {
@@ -123,7 +114,7 @@ void    Server::makeCommand(int ident) {
 			if (client->getCommand().find('\n') != std::string::npos) {
 				while (std::getline(iss, tmp, '\n')) {
 					tmp.replace(tmp.find("\r"), 1, "");
-					std::cout << "\nCommand : " << tmp;
+					std::cout << "\nCommand : " << tmp << "\n";
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
 			}
@@ -159,7 +150,7 @@ void	Server::sendMessage(int ident) {
 }
 
 void	Server::disconnectClient(int client_fd) {
-	std::vector<std::string> joined_channel = _client_list[client_fd]->getJoinedChannel();
+	const std::vector<std::string>& joined_channel = _client_list[client_fd]->getJoinedChannel();
 	std::map<std::string, Channel *>::iterator it;
 
 	std::cout << "client disconnected: " << client_fd << "\n";
@@ -212,9 +203,9 @@ void	Server::startServer() {
 	int	new_events;
 
 	this->setServer();
+	std::cout << "Server start\n";
 	while (true) {
-		new_events = kevent(_kq, &_change_list[0], _change_list.size(), \
-				event_list, EVENT_MAX, NULL);
+		new_events = kevent(_kq, &_change_list[0], _change_list.size(), event_list, EVENT_MAX, NULL);
 		if (new_events == -1)
 			exitMessage("kevent error");
 		_change_list.clear();

@@ -52,18 +52,15 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 			else if (_cmd == "PART")
 				part(server, client);
 			else {
-				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, _cmd));
+				client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, _cmd));
 			}
 		}
 		else {
-			client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
+			client->addMessage(handleResponse("*", ERR_NOTREGISTERED));
 			return ;
 		}
-	}
-	else {
-		//pass를 입력안해서nick이 없는데 어떻게 response?
-		// 정보가 없을때 nickname 을 *로 표시
-		client->setMessage(handleResponse("*", ERR_NOTREGISTERED));
+	} else {
+		client->addMessage(handleResponse("*", ERR_NOTREGISTERED));
 		return ;
 	}
 }
@@ -75,18 +72,16 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	std::string buf;
 	std::string tmp1;
 	std::string col;
-	(void)client;
 
 	std::getline(ss, tmp1, ':');
 	std::getline(ss, col);
 	std::istringstream col_ss(tmp1);
 	std::getline(col_ss, _cmd, ' ');
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
-		//421
 		if (client->getNick())
-			client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
+			client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
 		else 
-			client->setMessage(handleResponse("*", ERR_UNKNOWNCOMMAND, _cmd));
+			client->addMessage(handleResponse("*", ERR_UNKNOWNCOMMAND, _cmd));
 		return false;
 	}
 	while (std::getline(col_ss, buf, ' ')) {
@@ -104,21 +99,41 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 void Command::pass(Server& server, Client* client) {
 	//PASS <password>
 	if (_params.empty()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PASS"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PASS"));
 		client->setDisconnect(true);
 		return ;
 	}
 	if (client->getPass()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
+		client->addMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
 		return ;
 	}
 	if (_params[0] == server.getPassword()) {
 		client->setPass(true);
 	}
 	else {
-		client->setMessage(handleResponse("", ERR_PASSWDMISMATCH));
+		client->addMessage(handleResponse("", ERR_PASSWDMISMATCH));
 		client->setDisconnect(true);
 	}
+}
+
+bool Command::validNick(Client* client, const std::string& nickname) {
+	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&'
+		|| std::isdigit(nickname[0])) {
+		client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+		return false;
+	}
+	for (std::size_t i = 0; i < nickname.size(); ++i) {
+		if (nickname[i] == ' ' || nickname[i] == ',' || nickname[i] == '.' || nickname[i] == '*' ||
+			nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') {
+			client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+			return false;
+		}
+	}
+	if (nickname.length() > 9) {
+		client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+		return false;
+	}
+	return true;
 }
 
 void Command::nick(Server& server, Client* client) {
@@ -126,40 +141,22 @@ void Command::nick(Server& server, Client* client) {
 	//want 코크풍선..
 	//NICK 변경가능
 	if (_params.empty()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
 		return ;
 	}
 	std::string nickname = _params[0];
-	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&'
-		|| std::isdigit(nickname[0])) {
-		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+	if (!validNick(client, nickname))
 		return ;
-	}
-	for (std::size_t i = 0; i < nickname.size(); ++i) {
-		if (nickname[i] == ' ' || nickname[i] == ',' || nickname[i] == '.' || nickname[i] == '*' ||
-			nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') {
-			client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
-			return ;
-		}
-	}
-	if (nickname.length() > 9) {
-		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
-		return ;
-	}
-	if (server.findClient(nickname) || nickname == "bot") {
-		client->setMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
-		return ;
-	}
-	std::cout << client << '\n';
 	if (client->getNick()) {
 		std::map<std::string, Channel *> channel_list = server.getChannelList();
 		std::map<std::string, Channel *>::iterator it = channel_list.begin();
-		for (; it != channel_list.end(); it++) {
-			std::cout << "invite nick\n";
+		for (; it != channel_list.end(); it++)
 			it->second->changeInviteNick(client->getNickname(), nickname);
-		}
-		std::cout << "change nick \n";
-		client->setMessage(messageFormat(NICK, client, nickname));
+		client->addMessage(messageFormat(NICK, client, nickname));
+	}
+	if (server.findClient(nickname) || nickname == "bot") {
+		client->addMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
+		return ;
 	}
 	client->setNickname(nickname);
 	client->setNick(true);
@@ -170,15 +167,15 @@ void Command::nick(Server& server, Client* client) {
 void Command::user(Client* client) {
 	//USER <username> <hostname> <servername> :<realname>
 	if (client->getUser()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "USER"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "USER"));
 		return ;
 	}
 	if (_params.size() < 4) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "USER"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "USER"));
 		return ;
 	}
 	if (client->getUser()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
+		client->addMessage(handleResponse(client->getNickname(), ERR_ALREADYREGISTRED));
 		return ;
 	}
 	client->setUser(true);
@@ -191,23 +188,19 @@ void Command::user(Client* client) {
 }
 
 void	Command::allready(Client* client) {
-	client->setMessage(messageFormat(RPL_WELCOME, client));
-	client->setMessage(messageFormat(RPL_YOURHOST, client));
-	client->setMessage(messageFormat(RPL_CREATED, client, "Mon Jan 1 00:00:00 2020"));
-	client->setMessage(messageFormat(RPL_MYINFO, client, "tmp1.0 x itklo"));
+	client->addMessage(messageFormat(RPL_WELCOME, client));
+	client->addMessage(messageFormat(RPL_YOURHOST, client));
+	client->addMessage(messageFormat(RPL_CREATED, client, "SUN June 16 42:42:42 2024"));
+	client->addMessage(messageFormat(RPL_MYINFO, client, "version 1.0 x itklo"));
 	client->setAllReady(true);
 }
 
 void Command::join(Server& server, Client* client) {
 	//JOIN <channel>{,<channel>} [<key>{,<key>}]
-	//JOIN c1,c2,c3,c4 k1,k2 c4 = "hello,hi"
-	//채널이름에 ',' , 7번, 공백 사용금지
-	//JOIN 채널이름이 없으면 만들어서 server의 chanel
 	if (_params.empty()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "JOIN"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "JOIN"));
 		return ;
 	}
-	std::map<std::string, std::string> key_map;
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 	std::istringstream channel_ss(_params[0]);
 	std::istringstream key_ss(_params.size() > 1 ? _params[1] : "");
@@ -215,35 +208,25 @@ void Command::join(Server& server, Client* client) {
 	std::string key;
 
 	while (std::getline(channel_ss, channel_name, ',')) {
+		std::getline(key_ss, key, ',');
 		if (channel_name[0] != '#'){
-			client->setMessage(handleResponse(channel_name, ERR_BADCHANMASK));
-			std::getline(key_ss, key, ',');//< - 이거 괜찮음?
+			client->addMessage(handleResponse(channel_name, ERR_BADCHANMASK));
 			continue ;
 		}
 		if (channel_name.find(6) != std::string::npos
 			|| channel_name.find(':') != std::string::npos)
-			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
-		if (!std::getline(key_ss, key, ','))
-			key = "";
-		key_map[channel_name] = key;
-	}
-
-	std::map<std::string, std::string>::iterator it = key_map.begin();
-	for (; it != key_map.end(); ++it){
-		std::string channel_name = it->first;
-		std::string channel_key = it->second;
+			client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 		if (channel_list.find(channel_name) != channel_list.end()) {
 			std::vector<std::string> joined_ch = client->getJoinedChannel();
 			if (std::find(joined_ch.begin(), joined_ch.end(), channel_name) != joined_ch.end()) {
-				client->setMessage(handleResponse(client->getNickname(), ERR_USERONCHANNEL, channel_name));
+				client->addMessage(handleResponse(client->getNickname(), ERR_USERONCHANNEL, channel_name));
 				continue ;
 			}
-			channel_list[channel_name]->join(client, channel_key);
-		}
-		else{
+			channel_list[channel_name]->join(client, key);
+		} else {
 			server.createChannel(channel_name);
 			std::map<std::string, Channel *> channel_list1 = server.getChannelList();
-			channel_list1[channel_name]->join(client, channel_key);
+			channel_list1[channel_name]->join(client, key);
 		}
 	}
 }
@@ -251,17 +234,17 @@ void Command::join(Server& server, Client* client) {
 void	Command::invite(Server& server, Client* client){
 	//INVITE <nickname> <channel>
 	if (_params.size() < 2) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "INVITE"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "INVITE"));
         return;
     }
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 	Client* invited_client = server.findClient(_params[0]);
 	if (!invited_client) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, _params[0]));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, _params[0]));
 		return ;
 	}
 	if (channel_list.find(_params[1]) == channel_list.end()){
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[1]));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[1]));
 		return ;
 	}
 	channel_list[_params[1]]->invite(client, invited_client);
@@ -272,17 +255,17 @@ void	Command::kick(Server& server, Client* client){
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 
 	if (_params.size() < 2) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "KICK"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "KICK"));
 		return ;
 	}
 	std::string channel_name = _params[0];
 	std::string target_name = _params[1];
 	if (!server.findClient(target_name)) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, target_name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, target_name));
 		return ;
 	}
 	if (channel_list.find(channel_name) == channel_list.end()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, channel_name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, channel_name));
 		return ;
 	}
 	if (_params.size() >= 3) {
@@ -300,13 +283,13 @@ void	Command::topic(Server& server, Client* client) {
 	//<topic>이 주어지지 않으면 topic 반환
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 
-	if (_params.size() < 1) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "TOPIC"));
+	if (_params.empty()) {
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "TOPIC"));
 		return ;
 	}
 	std::string channel_name = _params[0];
 	if (channel_list.find(channel_name) == channel_list.end()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 		return ;
 	}
 	if (_params.size() >= 2) {
@@ -322,14 +305,13 @@ void	Command::quit(Server& server, Client* client) {
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 	std::vector<std::string> joined_channel = client->getJoinedChannel();
 	if (_params.empty()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "QUIT"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "QUIT"));
 		return ;
 	}
-	for (unsigned int i = 0; i < joined_channel.size(); ++i) {
+	for (std::size_t i = 0; i < joined_channel.size(); ++i) {
 		channel_list[joined_channel[i]]->quit(client, _params[0]);
-		if (channel_list[joined_channel[i]]->getUserList().size() == 0) {
+		if (channel_list[joined_channel[i]]->getUserList().size() == 0)
 			server.deleteChannelList(joined_channel[i]);
-		}
 	}
 	client->clearJoinedChannel();
 	client->setDisconnect(true);
@@ -341,7 +323,7 @@ void	Command::privmsg(Server& server, Client* client) {
 	std::vector<std::string> joined_channel = client->getJoinedChannel();
 
 	if (_params.size() < 2) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PRIVMSG"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PRIVMSG"));
 		return ;
 	}
 	std::string receiver;
@@ -351,11 +333,11 @@ void	Command::privmsg(Server& server, Client* client) {
 		std::vector<std::string>::iterator it = std::find(joined_channel.begin(), joined_channel.end(), receiver);
 		if (receiver[0] == '#') {
 			if (channel_list.find(receiver) == channel_list.end())
-				client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, receiver));
+				client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, receiver));
 			else if (it == joined_channel.end())
-				client->setMessage(handleResponse(client->getNickname(), ERR_CANNOTSENDTOCHAN, receiver));
+				client->addMessage(handleResponse(client->getNickname(), ERR_CANNOTSENDTOCHAN, receiver));
 			else
-				channel_list[receiver]->broadcastWithoutClient(messageFormat(PRIVMSG, client, receiver, msg), client);//여기에다가 포맷 맞춰서 보내기
+				channel_list[receiver]->broadcastWithoutClient(messageFormat(PRIVMSG, client, receiver, msg), client);
 		} else {
 			if (receiver == "bot") {
 				excuteBot(client);
@@ -363,22 +345,18 @@ void	Command::privmsg(Server& server, Client* client) {
 			}
 			Client* receive_client = server.findClient(receiver);
 			if (!receive_client)
-				client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, receiver));
+				client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHNICK, receiver));
 			else
-				receive_client->setMessage(messageFormat(PRIVMSG, client, receive_client->getNickname(), msg));
+				receive_client->addMessage(messageFormat(PRIVMSG, client, receive_client->getNickname(), msg));
 		}
 	}
 }
 
 void	Command::mode(Server& server, Client* client) {
 	//MODE <channel> {[+|-]|i|t|k|o|l} [<limit>] [<user>]
-	//1. + - 인식 없으면 에러
-	//2 + or - 둘중 하나만 받고 이후에 있는 옵션들 다적용
-	//파라미터 없는 모드 : i, t
-	//파라미터 있는 모드 : k, o, l
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
-	if (_params.size() < 1) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+	if (_params.empty()) {
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 		return ;
 	}
 	if (_params.size() == 1) {
@@ -386,21 +364,20 @@ void	Command::mode(Server& server, Client* client) {
 			channel_list[_params[0]]->answerMode(client);
 			return ;
 		} else {
-			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[0]));
+			client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, _params[0]));
 			return ;
 		}
 	}
 	std::string	channel_name = _params[0];
 	if (channel_list.find(channel_name) == channel_list.end()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 		return ;
 	}
 	std::string opt = _params[1];
 	std::size_t pos_plus = opt.find('+');
 	std::size_t pos_minus = opt.find('-');
 	if (pos_plus == std::string::npos && pos_minus == std::string::npos) {
-		// UNKNOWNMODE 472
-		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
+		client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
 		return ;
 	}
 	std::string reply;
@@ -421,11 +398,11 @@ void	Command::mode(Server& server, Client* client) {
 
 	std::map<Client *, bool> user_list = channel_list[channel_name]->getUserList();
 	if (channel_list[channel_name]->checkChannelMember(client) == false) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, channel_name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, channel_name));
 		return ;
 	}
 	if (channel_list[channel_name]->checkAuthority(client) == false) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_CHANOPRIVSNEEDED, channel_name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_CHANOPRIVSNEEDED, channel_name));
 		return ;
 	}
 	for (std::size_t i = 0; i < opt.size();) {
@@ -455,7 +432,7 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_k)
 						continue ;
 					if (params_order == _params.size()) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 						continue ;
 					}
 					channel_list[channel_name]->plusOptK(_params[params_order]);
@@ -471,12 +448,12 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_o)
 						continue ;
 					if (params_order == _params.size()) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 						continue ;
 					}
 					Client* target_client = server.findClient(_params[params_order]);
 					if (!target_client) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[params_order], channel_name));
+						client->addMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[params_order], channel_name));
 						++params_order;
 						continue ;
 					}
@@ -490,15 +467,15 @@ void	Command::mode(Server& server, Client* client) {
 					params_reply += " " + _params[params_order];
 					++params_order;
 				} else if (opt[j] == 'l') {
-					if (opt_l)//params_order++?
+					if (opt_l)
 						continue ;
 					if (params_order == _params.size()) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 						continue ;
 					}
 					long nb = std::atol(_params[params_order].c_str());
 					if (nb <= 0) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[params_order]));
+						client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, _params[params_order]));
 						params_order++;
 						continue ;
 					}
@@ -519,7 +496,7 @@ void	Command::mode(Server& server, Client* client) {
 				} else if (opt[j] == '+') {
 					continue ;
 				} else {
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[j])));
+					client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[j])));
 					continue ;
 				}
 			}
@@ -559,12 +536,12 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_o)
 						continue ;
 					if (params_order == _params.size()) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
 						continue ;
 					}
 					Client* target_client = server.findClient(_params[params_order]);
 					if (!target_client) {
-						client->setMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[params_order], channel_name));
+						client->addMessage(handleResponse(client->getNickname(), ERR_USERNOTINCHANNEL, _params[params_order], channel_name));
 						++params_order;
 						continue ;
 					}
@@ -593,7 +570,7 @@ void	Command::mode(Server& server, Client* client) {
 				} else if (opt[j] == '-') {
 					continue ;
 				} else {
-					client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[j])));
+					client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, std::string(1, opt[j])));
 					continue ;
 				}
 			}
@@ -602,7 +579,6 @@ void	Command::mode(Server& server, Client* client) {
 			i++;
 		else
 			i = j;
-		std::cout << opt << ' ' << i << ' ' << j << '\n';
 	}
 	reply += params_reply;
 	if (!(reply == "+" || reply == "-"))
@@ -612,23 +588,23 @@ void	Command::mode(Server& server, Client* client) {
 void	Command::ping(Client* client) {
 	if (_params.size() != 1) 
 		return ;
-	client->setMessage(messageFormat(PONG, client));
+	client->addMessage(messageFormat(PONG, client));
 }
 
 void	Command::part(Server& server, Client* client) {
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
 	std::string reason = "";
 	if (_params.empty()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PART"));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PART"));
 		return ;
 	}
 	if (_params.size() >= 2)
 		reason = _params[1];
 	std::istringstream iss(_params[0]);
 	std::string channel_name;
-	while (std::getline(iss, channel_name, ',')) {// 이거 ,만 들어오면어떻게되지
+	while (std::getline(iss, channel_name, ',')) {
 		if (channel_list.find(channel_name) == channel_list.end()) {
-			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
+			client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 			continue ;
 		}
 		channel_list[channel_name]->part(client, reason);
