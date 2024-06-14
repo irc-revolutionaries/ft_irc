@@ -37,7 +37,7 @@ int		Server::getPort() const { return (_port); }
 int		Server::getKq() const { return (_kq); }
 
 //서버 소켓 설정
-void	Server::setServer(std::vector<struct kevent>& change_list) {
+void	Server::setServer() {
 	int	option = 1;
 
 	//소켓 생성
@@ -69,11 +69,11 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 		exitMessage("kqueue error");
 	//kevent 저장 벡터, 이벤트를 감시할 식별자, 이벤트 필터, 이벤트 플래그(새로운 이벤트 추가, 이벤트 활성화)
 	std::cout << "kqueue create\n";
-	changeEvents(change_list, _fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	changeEvents(_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	std::cout << "Server started\n";
 }
 
-void	Server::addClient(std::vector<struct kevent>& change_list) {
+void	Server::addClient() {
 	int	client_fd;
 
 	//클라이언트 소켓 연결
@@ -89,8 +89,8 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 		return ;
 	}
 		
-	changeEvents(change_list, client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
-	changeEvents(change_list, client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	changeEvents(client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	changeEvents(client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
 	//클라이언트 추가
 	Client *new_client = new Client(client_fd);
@@ -183,6 +183,20 @@ void	Server::createChannel(std::string ch_name) {
 	_channel_list.insert(channel_arg);
 }
 
+void	Server::deleteChannelList(std::string ch_name) {
+	delete _channel_list.find(ch_name)->second;
+	_channel_list.erase(ch_name);
+}
+
+//kevent 구조체 세팅, 감지 이벤트 리스트 추가
+void	Server::changeEvents(uintptr_t ident, int16_t filter, \
+			uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
+	struct kevent temp_event;
+
+    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
+    _change_list.push_back(temp_event);
+}
+
 //클라이언트의 nickname으로 find
 Client* Server::findClient(const std::string& name) {
 	std::map<int, Client *>::iterator it;
@@ -192,21 +206,40 @@ Client* Server::findClient(const std::string& name) {
 	return (NULL);
 }
 
+void	Server::startServer() {
+	struct kevent	event_list[EVENT_MAX];
+	struct kevent*	curr_event;
+	int	new_events;
+
+	this->setServer();
+	while (true) {
+		new_events = kevent(_kq, &_change_list[0], _change_list.size(), \
+				event_list, EVENT_MAX, NULL);
+		if (new_events == -1)
+			exitMessage("kevent error");
+		_change_list.clear();
+
+		for (int i = 0; i < new_events; ++i) {
+			curr_event = &event_list[i];
+			if (curr_event->flags & EV_ERROR) {
+				if (curr_event->ident == (unsigned long)(_fd))
+					exitMessage("server socket error");
+				else {
+					std::cerr << "client socket error" << "\n";
+					this->disconnectClient(curr_event->ident);
+				}
+			} else if (curr_event->filter == EVFILT_READ) {
+				if (curr_event->ident == (unsigned long)(_fd))
+					this->addClient();
+				else if (_client_list.find(curr_event->ident) != _client_list.end())
+					this->makeCommand(curr_event->ident);
+			} else if (curr_event->filter == EVFILT_WRITE)
+				this->sendMessage(curr_event->ident);
+		}
+	}
+}
+
 void	exitMessage(const std::string& msg) {
 	std::cerr << msg << "\n";
 	exit(EXIT_FAILURE);
-}
-
-//kevent 구조체 세팅, 감지 이벤트 리스트 추가
-void changeEvents(std::vector<struct kevent>& change_list, uintptr_t ident, int16_t filter,
-        uint16_t flags, uint32_t fflags, intptr_t data, void *udata) {
-    struct kevent temp_event;
-
-    EV_SET(&temp_event, ident, filter, flags, fflags, data, udata);
-    change_list.push_back(temp_event);	
-}
-
-void	Server::deleteChannelList(std::string ch_name) {
-	delete _channel_list.find(ch_name)->second;
-	_channel_list.erase(ch_name);
 }
