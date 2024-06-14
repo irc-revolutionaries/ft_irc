@@ -9,7 +9,10 @@ Server::Server(const char* port, const char* password) {
 	for (int i = 0; port[i]; ++i)
 		if (!isdigit(port[i]))
 			exitMessage("port number error");
-	_port = atoi(port);
+	std::string str = port;
+	if (str.size() > 5)
+		exitMessage("Port number error\n Please input 1024 ~ 49151");
+	_port = std::atoi(port);
 	if (_port < 1024 || _port > 49151)
 		exitMessage("Port number error\n Please input 1024 ~ 49151");
 	_password = password;
