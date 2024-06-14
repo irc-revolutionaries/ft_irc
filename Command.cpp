@@ -17,6 +17,7 @@ Command::Command() {
 	_cmdlist.push_back("PRIVMSG");
 	_cmdlist.push_back("MODE");
 	_cmdlist.push_back("PING");
+	_cmdlist.push_back("PART");
 }
 
 void Command::handleCmd(Server& server, Client* client, const std::string& msg) {
@@ -48,6 +49,8 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 				privmsg(server, client);
 			else if (_cmd == "MODE")
 				mode(server, client);
+			else if (_cmd == "PART")
+				part(server, client);
 			else {
 				client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, _cmd));
 			}
@@ -122,10 +125,6 @@ void Command::nick(Server& server, Client* client) {
 	//NICK <nickname>
 	//want 코크풍선..
 	//NICK 변경가능
-	if (client->getNick()) {
-		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND, "NICK"));
-		return ;
-	}
 	if (_params.empty()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
 		return ;
@@ -136,7 +135,7 @@ void Command::nick(Server& server, Client* client) {
 		client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return ;
 	}
-	for (size_t i = 0; i < nickname.size(); ++i) {
+	for (std::size_t i = 0; i < nickname.size(); ++i) {
 		if (nickname[i] == ' ' || nickname[i] == ',' || nickname[i] == '.' || nickname[i] == '*' ||
 			nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') {
 			client->setMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
@@ -152,9 +151,18 @@ void Command::nick(Server& server, Client* client) {
 		return ;
 	}
 	std::cout << client << '\n';
+	if (client->getNick()) {
+		std::map<std::string, Channel *> channel_list = server.getChannelList();
+		std::map<std::string, Channel *>::iterator it = channel_list.begin();
+		for (; it != channel_list.end(); it++) {
+			std::cout << "invite nick\n";
+			it->second->changeInviteNick(client->getNickname(), nickname);
+		}
+		std::cout << "change nick \n";
+		client->setMessage(messageFormat(NICK, client, nickname));
+	}
 	client->setNickname(nickname);
 	client->setNick(true);
-	client->setMessage(messageFormat(NICK, client, nickname));
 	if (client->getNick() && client->getUser() && !client->getAllReady())
 		allready(client);
 }
@@ -388,8 +396,8 @@ void	Command::mode(Server& server, Client* client) {
 		return ;
 	}
 	std::string opt = _params[1];
-	size_t pos_plus = opt.find('+');
-	size_t pos_minus = opt.find('-');
+	std::size_t pos_plus = opt.find('+');
+	std::size_t pos_minus = opt.find('-');
 	if (pos_plus == std::string::npos && pos_minus == std::string::npos) {
 		// UNKNOWNMODE 472
 		client->setMessage(handleResponse(client->getNickname(), ERR_UNKNOWNMODE, opt));
@@ -409,7 +417,7 @@ void	Command::mode(Server& server, Client* client) {
 	else if (opt[0] == '-')
 		minus = true;
 	std::size_t	params_order = 2;
-	size_t j = 0;
+	std::size_t j = 0;
 
 	std::map<Client *, bool> user_list = channel_list[channel_name]->getUserList();
 	if (channel_list[channel_name]->checkChannelMember(client) == false) {
@@ -420,7 +428,7 @@ void	Command::mode(Server& server, Client* client) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_CHANOPRIVSNEEDED, channel_name));
 		return ;
 	}
-	for (size_t i = 0; i < opt.size();) {
+	for (std::size_t i = 0; i < opt.size();) {
 		if (opt[i] == '+') {
 			for (; j < opt.size(); j++) {
 				if (opt[j] == 'i') {
@@ -605,4 +613,25 @@ void	Command::ping(Client* client) {
 	if (_params.size() != 1) 
 		return ;
 	client->setMessage(messageFormat(PONG, client));
+}
+
+void	Command::part(Server& server, Client* client) {
+	std::map<std::string, Channel *> channel_list = server.getChannelList();
+
+	if (_params.empty()) {
+		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PART"));
+		return ;
+	}
+	std::istringstream iss(_params[0]);
+	std::vector<std::string> vec;
+	std::string channel_name;
+	while (std::getline(iss, channel_name, ',')) {// 이거 ,만 들어오면어떻게되지
+		if (channel_list.find(channel_name) == channel_list.end()) {
+			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
+			continue ;
+		}
+		channel_list[channel_name]->part(client, channel_name);
+	}
+	if (channel_list[channel_name]->getUserList().size() == 0)
+		server.deleteChannelList(channel_name);
 }
