@@ -27,6 +27,7 @@ public :
 	void	part(Server& server, Client* client);
 	void	ping(Client* client);
 	void	allready(Client* client);
+	bool	validNick(Client* client, const std::string& nickname);
 
 private :
 	std::vector <std::string> _cmdlist;

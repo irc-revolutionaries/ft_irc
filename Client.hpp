@@ -12,7 +12,6 @@ public :
 	void	setHostname(const std::string& hostname);
 	void	setCommand(const std::string& command);
 	void	setServername(const std::string& servername);
-	void	setMessage(const std::string& message);
 	void	setPass(bool check);
 	void	setNick(bool check);
 	void	setUser(bool check);
@@ -34,10 +33,11 @@ public :
 	const std::string&	getCommand() const;
 	const std::vector<std::string>&	getMessage() const;
 
+	void	addMessage(const std::string& message);
 	void	clearMessage();
 	const std::vector<std::string>&	getJoinedChannel() const;
 	void	clearJoinedChannel();
-	void	setJoinedChannel(const std::string& channel_name);
+	void	addJoinedChannel(const std::string& channel_name);
 	void	deleteJoinedChannel(const std::string& channel_name);
 private :
 	std::string _nickname;

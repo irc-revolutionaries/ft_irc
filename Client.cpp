@@ -9,7 +9,6 @@ void	Client::setRealname(const std::string& realname) { _realname = realname; }
 void	Client::setHostname(const std::string& hostname) { _hostname = hostname; }
 void	Client::setCommand(const std::string& command) { _command = command; }
 void	Client::setServername(const std::string& servername) { _servername = servername; }
-void	Client::setMessage(const std::string& message) { _message.push_back(message); }
 void	Client::setPass(bool check) { _pass = check; }
 void	Client::setNick(bool check) { _nick = check; }
 void	Client::setUser(bool check) { _user = check; }
@@ -34,7 +33,7 @@ void Client::clearMessage() {
 	_message.clear();
 }
 
-void Client::setJoinedChannel(const std::string& channel_name) {
+void Client::addJoinedChannel(const std::string& channel_name) {
 	this->_joined_channel.push_back(channel_name);
 }
 
@@ -48,4 +47,8 @@ void Client::deleteJoinedChannel(const std::string& channel_name) {
 
 void	Client::clearJoinedChannel() {
 	_joined_channel.clear();
+}
+
+void	Client::addMessage(const std::string& message) { 
+	_message.push_back(message);
 }

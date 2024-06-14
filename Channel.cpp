@@ -38,7 +38,7 @@ void	Channel::plusOptL(std::size_t limit) {
 void	Channel::plusOptO(Client* request_client, Client* target_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
 		return ;
 	}
 	it->second = true;
@@ -63,7 +63,7 @@ void	Channel::minusOptL() {
 void	Channel::minusOptO(Client* request_client, Client* target_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
 		return ;
 	}
 	it->second = false;
@@ -72,20 +72,20 @@ void	Channel::minusOptO(Client* request_client, Client* target_client) {
 void Channel::join(Client* new_client, const std::string& key) {
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), new_client->getNickname());
 	if (_opt_i == true && it == _invite_list.end()) {
-		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_INVITEONLYCHAN, _name));
+		new_client->addMessage(handleResponse(new_client->getNickname(), ERR_INVITEONLYCHAN, _name));
 		return ;
 	}
 	if (_opt_k != "" && _opt_k != key) {
-		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_BADCHANNELKEY, _name));
+		new_client->addMessage(handleResponse(new_client->getNickname(), ERR_BADCHANNELKEY, _name));
 		return ;
 	}
 	if (_opt_l != 0 && _user_list.size() >= _opt_l) {
-		new_client->setMessage(handleResponse(new_client->getNickname(), ERR_CHANNELISFULL, _name));
+		new_client->addMessage(handleResponse(new_client->getNickname(), ERR_CHANNELISFULL, _name));
 		return ;
 	}
 	if (_opt_i == true && it != _invite_list.end())
 		_invite_list.erase(it);
-	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_TOPIC, _name, _topic));
+	new_client->addMessage(handleResponse(new_client->getNickname(), RPL_TOPIC, _name, _topic));
 
 	if (_user_list.size() > 0) {
 		_user_list.insert(std::make_pair(new_client, false));
@@ -93,61 +93,56 @@ void Channel::join(Client* new_client, const std::string& key) {
 		_user_list.insert(std::make_pair(new_client, true));
 	}
 	broadcast(messageFormat(JOIN, new_client, _name));
-	if (_user_list.size() > 0) {
-		std::string temp;
-		if (_user_list.begin()->second == true)
-			temp = "@" + _user_list.begin()->first->getNickname();
+	std::string temp;
+	if (_user_list.begin()->second == true)
+		temp = "@" + _user_list.begin()->first->getNickname();
+	else
+		temp = _user_list.begin()->first->getNickname();
+	std::map<Client *, bool>::iterator it2 = ++_user_list.begin();
+	for (; it2 != _user_list.end(); it2++) {
+		if (it2->second == true)
+			temp += " @" + it2->first->getNickname();
 		else
-			temp = _user_list.begin()->first->getNickname();
-		std::map<Client *, bool>::iterator it = _user_list.begin();
-		it++;
-		for (; it != _user_list.end(); it++) {
-			if (it->second == true) 
-				temp += " @" + it->first->getNickname();
-			else 
-				temp += " " + it->first->getNickname();
-		}
-		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, temp));
-	} else
-		new_client->setMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, "@" + new_client->getNickname()));
-	new_client->setMessage(handleResponse(new_client->getNickname(), RPL_ENDOFNAMES, _name));
-	new_client->setJoinedChannel(_name);
+			temp += " " + it2->first->getNickname();
+	}
+	new_client->addMessage(handleResponse(new_client->getNickname(), RPL_NAMREPLY, _name, temp));
+	new_client->addMessage(handleResponse(new_client->getNickname(), RPL_ENDOFNAMES, _name));
+	new_client->addJoinedChannel(_name);
 }
 
 // INVITE
 void	Channel::invite(Client* request_client, Client* target_client) {
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), target_client->getNickname());
 	if (it == _invite_list.end())
 		_invite_list.push_back(target_client->getNickname());
-	std::cout << "INVITE SUCCESS~~~~~~~~~" << std::endl;
 	std::string temp;
 	// :<inviter_nick> INVITE <invitee_nick> <channel_name>
 	temp = ":" + request_client->getNickname() + " INVITE " + target_client->getNickname() + " " + _name + "\r\n";
-	target_client->setMessage(temp);
+	target_client->addMessage(temp);
 	broadcast(handleResponse(request_client->getNickname(), RPL_INVITING, _name, target_client->getNickname()));
 }
 
 // kick 성공하면 0, 권한이 없으면 1, 없는 client면 2 반환
 void	Channel::kick(Client* request_client, Client* target_client, const std::string& reason) {
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	}
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_USERNOTINCHANNEL, target_client->getNickname(), _name));
 		return ;
 	}
 	// :<nick>!<user>@<host> KICK <channel> <user> :<comment>
@@ -166,11 +161,11 @@ void	Channel::kick(Client* request_client, Client* target_client, const std::str
 // topic 설정 성공하면 0, topic-protection mode인데 권한이 없으면 1 반환
 void	Channel::topic(Client* request_client, const std::string& topic) {
 	if (checkChannelMember(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_NOTONCHANNEL, _name));
 		return ;
 	}
 	if (_opt_t == true && checkAuthority(request_client) == false) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
+		request_client->addMessage(handleResponse(request_client->getNickname(), ERR_CHANOPRIVSNEEDED, _name));
 		return ;
 	} else {
 		// :<nick>!<user>@<host> TOPIC <channel> :<new topic>
@@ -206,16 +201,14 @@ void	Channel::errorQuit(Client* request_client) {
 // 채널의 모든 클라이언트들에게 메세지를 보냄
 void	Channel::broadcast(const std::string& message) {
 	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
-		i->first->setMessage(message);
+		i->first->addMessage(message);
 }
 
 // client를 제외하고 채널의 모든 클라이언트들에게 메세지를 보냄
 void	Channel::broadcastWithoutClient(const std::string& message, Client* client) {
-	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++) {
-		if (i->first != client) {
-			i->first->setMessage(message);
-		}
-	}
+	for (std::map<Client *, bool>::iterator i = _user_list.begin(); i != _user_list.end(); i++)
+		if (i->first != client)
+			i->first->addMessage(message);
 }
 
 // 클라이언트 map getter
@@ -254,7 +247,7 @@ void	Channel::answerMode(Client* request_client) {
 	answer = answer_vec[0];
 	for (std::size_t i = 1; i < answer_vec.size(); i++)
 		answer += " " + answer_vec[i];
-	request_client->setMessage(handleResponse(request_client->getNickname(), RPL_CHANNELMODEIS, _name, answer));	
+	request_client->addMessage(handleResponse(request_client->getNickname(), RPL_CHANNELMODEIS, _name, answer));	
 }
 
 void Channel::deleteInviteList(std::string del_name) {
@@ -274,7 +267,7 @@ void Channel::changeInviteNick(const std::string& old_nick, const std::string& n
 void Channel::part(Client* client, const std::string& reason) {
 	std::map<Client *, bool>::iterator it = _user_list.find(client);
 	if (it == _user_list.end())
-		client->setMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, _name));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, _name));
 
 	client->deleteJoinedChannel(_name);
 	broadcast(messageFormat(PART, client, _name, reason));
