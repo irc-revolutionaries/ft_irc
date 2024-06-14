@@ -45,6 +45,7 @@ public :
 	void deleteInviteList(std::string del_name);
 	bool checkChannelMember(Client* client);
 	void changeInviteNick(const std::string& old_nick, const std::string& new_nick);
+	void part(Client* client);
 private :
 	std::string					_name;
 	std::map<Client *, bool>	_user_list;
