@@ -19,27 +19,22 @@ bool Channel::checkAuthority(Client* client) {
 	return it->second;
 }
 
-// i 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptI() {
 	_opt_i = true;
 }
 
-// t 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptT() {
 	_opt_t = true;
 }
 
-// k 옵션 설정되면 0, 권한이 없으면 1 반환
 void	Channel::plusOptK(const std::string& key) {
 	_opt_k = key;
 }
 
-// l 옵션 설정되면 0, 권한이 없으면 1 반환, 기존의 limit가 더 크거나 같으면 2, 이미 기준을 초과해서 클라이언트가 있으면 3 반환
 void	Channel::plusOptL(std::size_t limit) {
 	_opt_l = limit;
 }
 
-// o 옵션 설정되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
 void	Channel::plusOptO(Client* request_client, Client* target_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
@@ -49,27 +44,22 @@ void	Channel::plusOptO(Client* request_client, Client* target_client) {
 	it->second = true;
 }
 
-// i 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptI() {
 	_opt_i = false;
 }
 
-// t 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptT() {
 	_opt_t = false;
 }
 
-// k 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptK() {
 	_opt_k = "";
 }
 
-// l 옵션 제거되면 0, 권한이 없으면 1 반환
 void	Channel::minusOptL() {
 	_opt_l = 0;
 }
 
-// o 옵션 제거되면 0, 권한이 없으면 1 반환, target이 없으면 2 반환
 void	Channel::minusOptO(Client* request_client, Client* target_client) {
 	std::map<Client *, bool>::iterator it = _user_list.find(target_client);
 	if (it == _user_list.end()) {
@@ -79,7 +69,6 @@ void	Channel::minusOptO(Client* request_client, Client* target_client) {
 	it->second = false;
 }
 
-// join 성공하면 0, invite-only + invite 못 받았으면 1, key가 틀렸으면 2, 인원수 초과면 3 반환
 void Channel::join(Client* new_client, const std::string& key) {
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), new_client->getNickname());
 	if (_opt_i == true && it == _invite_list.end()) {
@@ -136,11 +125,9 @@ void	Channel::invite(Client* request_client, Client* target_client) {
 		return ;
 	}
 	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), target_client->getNickname());
-	if (it != _invite_list.end()) {
-		request_client->setMessage(handleResponse(request_client->getNickname(), ERR_USERONCHANNEL, _name));
-		return ;
-	}
-	_invite_list.push_back(target_client->getNickname());
+	if (it == _invite_list.end())
+		_invite_list.push_back(target_client->getNickname());
+	std::cout << "INVITE SUCCESS~~~~~~~~~" << std::endl;
 	std::string temp;
 	// :<inviter_nick> INVITE <invitee_nick> <channel_name>
 	temp = ":" + request_client->getNickname() + " INVITE " + target_client->getNickname() + " " + _name + "\r\n";
