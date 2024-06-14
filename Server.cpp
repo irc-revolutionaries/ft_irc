@@ -101,6 +101,7 @@ void    Server::makeCommand(int ident) {
     Command cmd;
     char    buf[MAX_BUF];
     ssize_t n = recv(ident, buf, MAX_BUF, 0); //메세지 수신
+	Client *client = _client_list[ident];
 
     if (n <= 0) {
 		if (n < 0)
@@ -114,18 +115,19 @@ void    Server::makeCommand(int ident) {
             buf[n] = '\0';
         else
             buf[n - 1] = '\0';
-        _command += buf;
-        if (_command.find('\n') != std::string::npos || _command.find('\r') != std::string::npos) {
-			std::istringstream iss(_command);
+		client->setCommand(client->getCommand() + buf);
+        if (client->getCommand().find('\n') != std::string::npos ||\
+			client->getCommand().find('\r') != std::string::npos) {
+			std::istringstream iss(client->getCommand());
 			std::string tmp;
-			if (_command.find('\n') != std::string::npos) {
+			if (client->getCommand().find('\n') != std::string::npos) {
 				while (std::getline(iss, tmp, '\n')) {
-					tmp.replace(tmp.find("\r"), tmp.length(), "");
-					std::cout << "\n_command : " << _command;
+					tmp.replace(tmp.find("\r"), 1, "");
+					std::cout << "\nCommand : " << tmp;
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
 			}
-            _command = "";
+            client->setCommand("");
         }
     }
 }
@@ -135,14 +137,20 @@ void	Server::sendMessage(int ident) {
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
 		for (size_t i  = 0; i < msg_vec.size(); ++i) {
-			ssize_t	n = send(ident, msg_vec[i].c_str(), msg_vec[i].length(), 0);
-			std::cout << "send message : " << msg_vec[i];
-			if (n < 0 || it->second->getDisconnect() == true) {
-				disconnectClient(ident);
-				return ;
+			size_t send_size = 0;
+			ssize_t n = 0;
+			while (send_size < msg_vec[i].length()) {
+				n = send(ident, msg_vec[i].c_str() + send_size, msg_vec[i].length(), 0);
+				if (n < 0) {
+					std::cerr << "Send error\n";
+					disconnectClient(ident);
+					return ;
+				}
+				send_size += n;
 			}
-			it->second->clearMessage();
+			std::cout << "Send message : " << msg_vec[i];
 		}
+		it->second->clearMessage();
 		if (it->second->getDisconnect() == true) {
 			disconnectClient(ident);
 			return ;

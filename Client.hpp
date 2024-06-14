@@ -10,6 +10,7 @@ public :
 	void	setUsername(const std::string& username);
 	void	setRealname(const std::string& realname);
 	void	setHostname(const std::string& hostname);
+	void	setCommand(const std::string& command);
 	void	setServername(const std::string& servername);
 	void	setMessage(const std::string& message);
 	void	setPass(bool check);
@@ -17,6 +18,7 @@ public :
 	void	setUser(bool check);
 	void	setAllReady(bool check);
 	void	setDisconnect(bool check);
+	
 	bool	getPass() const;
 	bool	getNick() const;
 	bool	getUser() const;
@@ -29,6 +31,7 @@ public :
 	const std::string&	getRealname() const;
 	const std::string&	getHostname() const;
 	const std::string&	getServername() const;
+	const std::string&	getCommand() const;
 	const std::vector<std::string>&	getMessage() const;
 
 	void	clearMessage();
@@ -42,6 +45,7 @@ private :
 	std::string	_realname;
 	std::string _hostname;
 	std::string _servername;
+	std::string	_command;
 	int			_fd;
 	bool		_pass;
 	bool		_nick;

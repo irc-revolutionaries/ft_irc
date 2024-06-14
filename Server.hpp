@@ -33,7 +33,6 @@ private :
 	std::map<int, Client *>				_client_list;
 	struct sockaddr_in	_server_addr;
 	std::string	_password;
-	std::string _command;
 	std::string	_name;
 	size_t	_fd;
 	int		_port;
