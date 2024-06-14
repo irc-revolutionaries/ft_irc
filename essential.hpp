@@ -11,6 +11,8 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <stdint.h>
+#include <csignal>
 
 class Client;
 
