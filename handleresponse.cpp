@@ -42,7 +42,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			message = ":" + nickname + " MODE " + target + " " + additionalInfo + "\r\n";
 			break;
 		case PART: //905
-			message = ":" + nickname + " PART " + target + " " + "\r\n";
+			message = ":" + nickname + " PART " + target + " " + ":" + additionalInfo + "\r\n";
 			break;
 	}
 	return (message);

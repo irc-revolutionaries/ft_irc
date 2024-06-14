@@ -617,11 +617,13 @@ void	Command::ping(Client* client) {
 
 void	Command::part(Server& server, Client* client) {
 	std::map<std::string, Channel *> channel_list = server.getChannelList();
-
+	std::string reason = "";
 	if (_params.empty()) {
 		client->setMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PART"));
 		return ;
 	}
+	if (_params.size() >= 2)
+		reason = _params[1];
 	std::istringstream iss(_params[0]);
 	std::vector<std::string> vec;
 	std::string channel_name;
@@ -630,7 +632,7 @@ void	Command::part(Server& server, Client* client) {
 			client->setMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
 			continue ;
 		}
-		channel_list[channel_name]->part(client);
+		channel_list[channel_name]->part(client, reason);
 	}
 	if (channel_list[channel_name]->getUserList().size() == 0)
 		server.deleteChannelList(channel_name);
