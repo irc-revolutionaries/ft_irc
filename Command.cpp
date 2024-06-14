@@ -625,7 +625,6 @@ void	Command::part(Server& server, Client* client) {
 	if (_params.size() >= 2)
 		reason = _params[1];
 	std::istringstream iss(_params[0]);
-	std::vector<std::string> vec;
 	std::string channel_name;
 	while (std::getline(iss, channel_name, ',')) {// 이거 ,만 들어오면어떻게되지
 		if (channel_list.find(channel_name) == channel_list.end()) {
@@ -633,7 +632,7 @@ void	Command::part(Server& server, Client* client) {
 			continue ;
 		}
 		channel_list[channel_name]->part(client, reason);
+		if (channel_list[channel_name]->getUserList().size() == 0)
+			server.deleteChannelList(channel_name);
 	}
-	if (channel_list[channel_name]->getUserList().size() == 0)
-		server.deleteChannelList(channel_name);
 }

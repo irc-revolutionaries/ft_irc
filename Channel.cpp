@@ -270,10 +270,12 @@ void Channel::changeInviteNick(const std::string& old_nick, const std::string& n
 	_invite_list.push_back(new_nick);
 }
 
-void Channel::part(Client* client) {
+void Channel::part(Client* client, const std::string& reason) {
 	std::map<Client *, bool>::iterator it = _user_list.find(client);
 	if (it == _user_list.end())
 		client->setMessage(handleResponse(client->getNickname(), ERR_NOTONCHANNEL, _name));
+
+	client->deleteJoinedChannel(_name);
+	broadcast(messageFormat(PART, client, _name, reason));
 	_user_list.erase(it);
-	broadcast(messageFormat(PART, client, _name));
 }
