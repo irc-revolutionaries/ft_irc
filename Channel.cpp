@@ -274,3 +274,11 @@ void Channel::deleteInviteList(std::string del_name) {
 	if (it != _invite_list.end())
 		_invite_list.erase(it);
 }
+
+void Channel::changeInviteNick(const std::string& old_nick, const std::string& new_nick) {
+	std::vector<std::string>::iterator it = std::find(_invite_list.begin(), _invite_list.end(), old_nick);
+	if (it == _invite_list.end()) 
+		return ;
+	_invite_list.erase(it);
+	_invite_list.push_back(new_nick);
+}

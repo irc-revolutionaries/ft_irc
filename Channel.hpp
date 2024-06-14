@@ -44,12 +44,12 @@ public :
 	bool checkAuthority(Client* client);
 	void deleteInviteList(std::string del_name);
 	bool checkChannelMember(Client* client);
+	void changeInviteNick(const std::string& old_nick, const std::string& new_nick);
 private :
 	std::string					_name;
 	std::map<Client *, bool>	_user_list;
 	std::string					_topic;
 	std::vector<std::string>	_invite_list;
-
 
 	// 옵션 관련 flag들
 	bool		_opt_i;
