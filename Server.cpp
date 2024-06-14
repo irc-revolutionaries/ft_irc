@@ -59,7 +59,9 @@ void	Server::setServer(std::vector<struct kevent>& change_list) {
 	//소켓을 수신 대기 상대로 만들기
 	if (listen(_fd, 5) == -1)
 		exitMessage("listen error");
-	fcntl(_fd, F_SETFL, O_NONBLOCK); //소켓 non-blocking 설정
+	
+	if (fcntl(_fd, F_SETFL, O_NONBLOCK) == -1) //소켓 non-blocking 설정
+		exitMessage("Server Socket fcntl error");
 	
 	//kqueue 생성
 	_kq = kqueue();
@@ -76,10 +78,17 @@ void	Server::addClient(std::vector<struct kevent>& change_list) {
 
 	//클라이언트 소켓 연결
 	client_fd = accept(_fd, NULL, NULL);
-	if (client_fd == -1)
-		exitMessage("accept error");
+	if (client_fd == -1) {
+		std::cerr << "Client accept error\n";
+		return ;
+	}
 	std::cout << "accept new clinet: " << client_fd << "\n";
-	fcntl(client_fd, F_SETFL, O_NONBLOCK); //non-blocking 모드
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1) {
+		std::cerr << "Client Socket fcntl error\n";
+		close(client_fd);
+		return ;
+	}
+		
 	changeEvents(change_list, client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	changeEvents(change_list, client_fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 
