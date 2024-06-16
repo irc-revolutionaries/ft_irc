@@ -129,7 +129,7 @@ bool Command::validNick(Client* client, const std::string& nickname) {
 			return false;
 		}
 	}
-	if (nickname.length() > 9) {
+	if (nickname.length() > 9 || nickname.length() == 0) {
 		client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
 		return false;
 	}
@@ -208,14 +208,17 @@ void Command::join(Server& server, Client* client) {
 	std::string key;
 
 	while (std::getline(channel_ss, channel_name, ',')) {
-		std::getline(key_ss, key, ',');
+		if (!std::getline(key_ss, key, ','))
+			key = "";
 		if (channel_name[0] != '#'){
 			client->addMessage(handleResponse(channel_name, ERR_BADCHANMASK));
 			continue ;
 		}
 		if (channel_name.find(6) != std::string::npos
-			|| channel_name.find(':') != std::string::npos)
-			client->addMessage(handleResponse(client->getNickname(), ERR_NOSUCHCHANNEL, channel_name));
+			|| channel_name.find(':') != std::string::npos) {
+			client->addMessage(handleResponse(channel_name, ERR_BADCHANMASK));
+			continue;
+		}
 		if (channel_list.find(channel_name) != channel_list.end()) {
 			std::vector<std::string> joined_ch = client->getJoinedChannel();
 			if (std::find(joined_ch.begin(), joined_ch.end(), channel_name) != joined_ch.end()) {
