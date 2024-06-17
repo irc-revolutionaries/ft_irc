@@ -66,32 +66,26 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	_params.clear();
 	_cmd.clear();
 	std::istringstream ss(msg);
-	std::istringstream tmp_ss(msg);
-	std::string tmp_cmd;
 	std::string buf;
-	std::string tmp1;
 	std::string col;
 	
-	std::getline(tmp_ss, tmp_cmd, ' ');
-	if (tmp_cmd == "JOIN")
-		std::getline(ss, tmp1, ' ');
-	else
-		std::getline(ss, tmp1, ':');
-	std::getline(ss, col);
-	std::istringstream col_ss(tmp1);
-	std::getline(col_ss, _cmd, ' ');
+	std::getline(ss, _cmd, ' ');
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
 		client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
 		return false;
 	}
-	while (std::getline(col_ss, buf, ' ')) {
+	while (std::getline(ss, buf, ' ')) {
+		if (buf[0] == ':') {
+			col = buf;
+			break ;
+		}
 		_params.push_back(buf);
+	}
+	while (std::getline(ss, buf, ' ')) {
+		col += (' ' + buf);
 	}
 	if (col != "")
 		_params.push_back(col);
-	for (int i =0; i < (int)_params.size(); ++i) {
-		std::cout << "_params " << i << " : " << _params[i] <<'\n';
-	}
 	return true;
 }
 

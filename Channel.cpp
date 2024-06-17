@@ -171,8 +171,8 @@ void	Channel::topic(Client* request_client, const std::string& topic) {
 		// :<nick>!<user>@<host> TOPIC <channel> :<new topic>
 		std::string temp;
 		temp = ":" + request_client->getNickname() + "!" + request_client->getUsername() \
-				+ "@" + request_client->getHostname() + " TOPIC " + _name + " :" \
-				+ topic + "\r\n";
+				+ "@" + request_client->getHostname() + " TOPIC " + _name + " " + \
+				topic + "\r\n";
 		broadcast(temp);
 		_topic = topic;
 		return ;

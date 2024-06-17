@@ -24,7 +24,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
             message = ":" + g_server_name + " 004 " + client->getNickname() + " " + g_server_name + " " + target + "\r\n";
             break;
 		case PRIVMSG: //900
-			message = ":" + nickname + " PRIVMSG " + target + " :" + additionalInfo + "\r\n";
+			message = ":" + nickname + " PRIVMSG " + target + " " + additionalInfo + "\r\n";
 			break;
         case NICK: //901
 			message = ":" + nickname + " NICK " + ":" + target + "\r\n";
