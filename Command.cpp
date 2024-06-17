@@ -575,7 +575,7 @@ void	Command::mode(Server& server, Client* client) {
 			i = j;
 	}
 	reply += params_reply;
-	if (!(reply == "+" || reply == "-"))
+	if (!(reply == "+" || reply == "-") && reply.size())
 		channel_list[channel_name]->broadcast(messageFormat(MODE, client, channel_name, reply));
 }
 
