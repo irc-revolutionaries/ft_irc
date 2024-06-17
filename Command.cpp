@@ -426,7 +426,7 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_k)
 						continue ;
 					if (params_order == _params.size()) {
-						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE +k"));
 						continue ;
 					}
 					channel_list[channel_name]->plusOptK(_params[params_order]);
@@ -442,7 +442,7 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_o)
 						continue ;
 					if (params_order == _params.size()) {
-						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE +o"));
 						continue ;
 					}
 					Client* target_client = server.findClient(_params[params_order]);
@@ -464,7 +464,7 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_l)
 						continue ;
 					if (params_order == _params.size()) {
-						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE +l"));
 						continue ;
 					}
 					long nb = std::atol(_params[params_order].c_str());
@@ -530,7 +530,7 @@ void	Command::mode(Server& server, Client* client) {
 					if (opt_o)
 						continue ;
 					if (params_order == _params.size()) {
-						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE"));
+						client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "MODE -o"));
 						continue ;
 					}
 					Client* target_client = server.findClient(_params[params_order]);
