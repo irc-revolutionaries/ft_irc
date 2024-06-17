@@ -136,7 +136,6 @@ void	Server::sendMessage(int ident) {
 			while (send_size < msg_vec[i].length()) {
 				n = send(ident, msg_vec[i].c_str() + send_size, msg_vec[i].length(), 0);
 				if (n < 0) {
-					std::cerr << "Send error\n";
 					disconnectClient(ident);
 					return ;
 				}
@@ -235,5 +234,5 @@ void	Server::startServer() {
 
 void	exitMessage(const std::string& msg) {
 	std::cerr << msg << "\n";
-	exit(EXIT_FAILURE);
+	exit(1);
 }
