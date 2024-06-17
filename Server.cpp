@@ -43,7 +43,7 @@ void	Server::setServer() {
 	int	option = 1;
 
 	//소켓 생성
-	_fd = socket(PF_INET, SOCK_STREAM, 0);
+	_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (int(_fd) == -1)
 		exitMessage("Socket error");
 	setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, (void *)(&option), sizeof(option));
@@ -109,11 +109,14 @@ void    Server::makeCommand(int ident) {
 		client->setCommand(client->getCommand() + buf);
         if (client->getCommand().find('\n') != std::string::npos ||\
 			client->getCommand().find('\r') != std::string::npos) {
+			char find_char = (client->getCommand().find('\n') != std::string::npos) ? '\n' : '\r';
+			char del_char = (find_char == '\n') ? '\r' : '\n';
 			std::istringstream iss(client->getCommand());
 			std::string tmp;
-			if (client->getCommand().find('\n') != std::string::npos) {
-				while (std::getline(iss, tmp, '\n')) {
-					tmp.replace(tmp.find("\r"), 1, "");
+			if (client->getCommand().find(find_char) != std::string::npos) {
+				while (std::getline(iss, tmp, find_char)) {
+					while (tmp.find(del_char) != std::string::npos)
+					tmp.replace(tmp.find(del_char), 1, "");
 					std::cout << "\nCommand : " << tmp << "\n";
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
