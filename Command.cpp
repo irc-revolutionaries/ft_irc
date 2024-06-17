@@ -59,9 +59,6 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 			client->addMessage(handleResponse("*", ERR_NOTREGISTERED));
 			return ;
 		}
-	} else {
-		client->addMessage(handleResponse("*", ERR_NOTREGISTERED));
-		return ;
 	}
 }
 
@@ -100,7 +97,6 @@ void Command::pass(Server& server, Client* client) {
 	//PASS <password>
 	if (_params.empty()) {
 		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "PASS"));
-		client->setDisconnect(true);
 		return ;
 	}
 	if (client->getPass()) {
@@ -110,10 +106,8 @@ void Command::pass(Server& server, Client* client) {
 	if (_params[0] == server.getPassword()) {
 		client->setPass(true);
 	}
-	else {
+	else
 		client->addMessage(handleResponse("", ERR_PASSWDMISMATCH));
-		client->setDisconnect(true);
-	}
 }
 
 bool Command::validNick(Client* client, const std::string& nickname) {
