@@ -9,7 +9,7 @@ Server::Server(const char* port, const char* password) {
 	std::string str = port;
 
 	for (int i = 0; port[i]; ++i)
-		if (!isdigit(port[i]))
+		if (!std::isdigit(port[i]))
 			exitMessage("port number error");
 	if (str.size() > 5)
 		exitMessage("Port number error\n Please input 1024 ~ 49151");
@@ -105,7 +105,10 @@ void    Server::makeCommand(int ident) {
 			std::cout << "client EOF\n";
 		disconnectClient(ident);
 	} else {
-		(n < 512) ? buf[n] = 0 : buf[n - 1] = 0;
+		if (n <= 512)
+			buf[n - 1] = 0;
+		else
+			buf[n] = 0;
 		client->setCommand(client->getCommand() + buf);
         if (client->getCommand().find('\n') != std::string::npos ||\
 			client->getCommand().find('\r') != std::string::npos) {
@@ -116,7 +119,7 @@ void    Server::makeCommand(int ident) {
 			if (client->getCommand().find(find_char) != std::string::npos) {
 				while (std::getline(iss, tmp, find_char)) {
 					while (tmp.find(del_char) != std::string::npos)
-					tmp.replace(tmp.find(del_char), 1, "");
+						tmp.replace(tmp.find(del_char), 1, "");
 					std::cout << "\nCommand : " << tmp << "\n";
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
