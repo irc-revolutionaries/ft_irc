@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd)
-: _fd(fd), _pass(false), _nick(false), _user(false), _allready(false), _disconnect(false) {}
+: _nickname("*"), _fd(fd), _pass(false), _nick(false), _user(false), _allready(false), _disconnect(false) {}
 
 void	Client::setNickname(const std::string& nickname) { _nickname = nickname; }
 void	Client::setUsername(const std::string& username) { _username = username; }

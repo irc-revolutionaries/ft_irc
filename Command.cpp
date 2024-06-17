@@ -56,7 +56,7 @@ void Command::handleCmd(Server& server, Client* client, const std::string& msg) 
 			}
 		}
 		else {
-			client->addMessage(handleResponse("*", ERR_NOTREGISTERED));
+			client->addMessage(handleResponse(client->getNickname(), ERR_NOTREGISTERED));
 			return ;
 		}
 	}
@@ -75,10 +75,7 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	std::istringstream col_ss(tmp1);
 	std::getline(col_ss, _cmd, ' ');
 	if (std::find(_cmdlist.begin(), _cmdlist.end(), _cmd) == _cmdlist.end()){
-		if (client->getNick())
-			client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
-		else 
-			client->addMessage(handleResponse("*", ERR_UNKNOWNCOMMAND, _cmd));
+		client->addMessage(handleResponse(client->getNickname(), ERR_UNKNOWNCOMMAND ,_cmd));
 		return false;
 	}
 	while (std::getline(col_ss, buf, ' ')) {
@@ -113,18 +110,18 @@ void Command::pass(Server& server, Client* client) {
 bool Command::validNick(Client* client, const std::string& nickname) {
 	if (nickname[0] == '$' || nickname[0] == ':' || nickname[0] == '#' || nickname[0] == '&'
 		|| std::isdigit(nickname[0])) {
-		client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+		client->addMessage(handleResponse(client->getNickname(), ERR_ERRONEUSNICKNAME, nickname));
 		return false;
 	}
 	for (std::size_t i = 0; i < nickname.size(); ++i) {
 		if (nickname[i] == ' ' || nickname[i] == ',' || nickname[i] == '.' || nickname[i] == '*' ||
 			nickname[i] == '?' || nickname[i] == '!' || nickname[i] == '@') {
-			client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+			client->addMessage(handleResponse(client->getNickname(), ERR_ERRONEUSNICKNAME, nickname));
 			return false;
 		}
 	}
 	if (nickname.length() > 9 || nickname.length() == 0) {
-		client->addMessage(handleResponse("*", ERR_ERRONEUSNICKNAME, nickname));
+		client->addMessage(handleResponse(client->getNickname(), ERR_ERRONEUSNICKNAME, nickname));
 		return false;
 	}
 	return true;
@@ -149,7 +146,7 @@ void Command::nick(Server& server, Client* client) {
 		client->addMessage(messageFormat(NICK, client, nickname));
 	}
 	if (server.findClient(nickname) || nickname == "bot") {
-		client->addMessage(handleResponse("*", ERR_NICKNAMEINUSE, nickname));
+		client->addMessage(handleResponse(client->getNickname(), ERR_NICKNAMEINUSE, nickname));
 		return ;
 	}
 	client->setNickname(nickname);
