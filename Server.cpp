@@ -34,7 +34,7 @@ Server::~Server() {
 const std::map<std::string, Channel *>&	Server::getChannelList() const { return (_channel_list); }
 const std::map<int, Client *>&			Server::getClientList() const { return (_client_list); }
 const std::string&	Server::getPassword() const { return (_password); }
-std::size_t	Server::getFd() const { return (_fd); }
+size_t	Server::getFd() const { return (_fd); }
 int		Server::getPort() const { return (_port); }
 int		Server::getKq() const { return (_kq); }
 
@@ -116,7 +116,7 @@ void    Server::makeCommand(int ident) {
 			if (client->getCommand().find(find_char) != std::string::npos) {
 				while (std::getline(iss, tmp, find_char)) {
 					while (tmp.find(del_char) != std::string::npos)
-					tmp.replace(tmp.find(del_char), 1, "");
+						tmp.replace(tmp.find(del_char), 1, "");
 					std::cout << "\nCommand : " << tmp << "\n";
 					cmd.handleCmd(*this, _client_list[ident], tmp);
 				}
@@ -130,12 +130,13 @@ void	Server::sendMessage(int ident) {
 	std::map<int, Client *>::const_iterator it = _client_list.find(ident);
 	if (it != _client_list.end()) {
 		std::vector<std::string> msg_vec = it->second->getMessage();
-		for (std::size_t i  = 0; i < msg_vec.size(); ++i) {
-			std::size_t send_size = 0;
+		for (size_t i  = 0; i < msg_vec.size(); ++i) {
+			size_t send_size = 0;
 			ssize_t n = 0;
 			while (send_size < msg_vec[i].length()) {
 				n = send(ident, msg_vec[i].c_str() + send_size, msg_vec[i].length(), 0);
 				if (n < 0) {
+					std::cerr << "Send error\n";
 					disconnectClient(ident);
 					return ;
 				}
@@ -159,7 +160,7 @@ void	Server::disconnectClient(int client_fd) {
 	close(client_fd); //연결 종료
 	for (it = _channel_list.begin(); it != _channel_list.end(); ++it) 
 		_channel_list[it->first]->deleteInviteList(_client_list[client_fd]->getNickname());
-	for (std::size_t i = 0; i < joined_channel.size(); ++i) {
+	for (size_t i = 0; i < joined_channel.size(); ++i) {
 		_channel_list[joined_channel[i]]->errorQuit(_client_list[client_fd]);
 		if (_channel_list[joined_channel[i]]->getUserList().size() == 0) {
 			deleteChannelList(joined_channel[i]);
@@ -234,5 +235,5 @@ void	Server::startServer() {
 
 void	exitMessage(const std::string& msg) {
 	std::cerr << msg << "\n";
-	std::exit(1);
+	exit(EXIT_FAILURE);
 }

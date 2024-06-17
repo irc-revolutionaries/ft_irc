@@ -33,7 +33,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			message = ":" + nickname + " JOIN " + ":" + target + "\r\n";
             break;
         case QUIT: //903
-			message = ":" + nickname + " QUIT " + ":" + target + "\r\n";
+			message = ":" + nickname + " QUIT " +  target + "\r\n";
             break;
 		case PONG: //904
 			message = "PONG :" + g_server_name + "\r\n";
@@ -42,7 +42,7 @@ const std::string messageFormat(int cmd_code, Client *client, const std::string&
 			message = ":" + nickname + " MODE " + target + " " + additionalInfo + "\r\n";
 			break;
 		case PART: //905
-			message = ":" + nickname + " PART " + target + " " + ":" + additionalInfo + "\r\n";
+			message = ":" + nickname + " PART " + target + " " + additionalInfo + "\r\n";
 			break;
 	}
 	return (message);
@@ -151,6 +151,8 @@ const std::string handleResponse(const std::string& nickname, int responseCode, 
             break;
 		case ERR_PASSWDMISMATCH: //464
 			message = ":" + g_server_name + " 464 * :Server Password incorrect\r\n";
+		case ERR_BADCHANNAME: //479
+			message = ":" + g_server_name + " 479 " + nickname + " " + target + " :Channel name contains illegal characters\r\n";
 	}
 	return (message);
 }

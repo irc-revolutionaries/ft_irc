@@ -204,7 +204,7 @@ void Command::join(Server& server, Client* client) {
 			continue ;
 		}
 		if (channel_name.find(7) != std::string::npos) {
-			client->addMessage(handleResponse(channel_name, ERR_BADCHANMASK));
+			client->addMessage(handleResponse(client->getNickname(), ERR_BADCHANNAME, channel_name));
 			continue;
 		}
 		if (channel_list.find(channel_name) != channel_list.end()) {
