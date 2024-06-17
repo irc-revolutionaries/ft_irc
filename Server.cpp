@@ -234,5 +234,5 @@ void	Server::startServer() {
 
 void	exitMessage(const std::string& msg) {
 	std::cerr << msg << "\n";
-	exit(1);
+	std::exit(1);
 }
