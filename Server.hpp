@@ -15,7 +15,7 @@ public :
 	const std::map<std::string, Channel *>&	getChannelList() const;
 	const std::map<int, Client *>&			getClientList() const;
 	const std::string&		getPassword() const;
-	size_t getFd() const;
+	std::size_t getFd() const;
 	int getPort() const;
 	int getKq() const;
 
@@ -38,7 +38,7 @@ private :
 	struct sockaddr_in	_server_addr;
 	std::string	_password;
 	std::string	_name;
-	size_t	_fd;
+	std::size_t	_fd;
 	int		_port;
 	int		_kq;
 

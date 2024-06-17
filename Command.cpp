@@ -66,11 +66,17 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	_params.clear();
 	_cmd.clear();
 	std::istringstream ss(msg);
+	std::istringstream tmp_ss(msg);
+	std::string tmp_cmd;
 	std::string buf;
 	std::string tmp1;
 	std::string col;
-
-	std::getline(ss, tmp1, ':');
+	
+	std::getline(tmp_ss, tmp_cmd, ' ');
+	if (tmp_cmd == "JOIN")
+		std::getline(ss, tmp1, ' ');
+	else
+		std::getline(ss, tmp1, ':');
 	std::getline(ss, col);
 	std::istringstream col_ss(tmp1);
 	std::getline(col_ss, _cmd, ' ');
@@ -83,9 +89,8 @@ bool Command::parseCmd(Client* client, const std::string& msg) {
 	}
 	if (col != "")
 		_params.push_back(col);
-	std::cout << "cmd : " << _cmd <<'\n';
-	for (int i = 0; i < (int)_params.size(); ++i) {
-		std::cout << "params " << i << " : "<< _params[i] << std::endl;
+	for (int i =0; i < (int)_params.size(); ++i) {
+		std::cout << "_params " << i << " : " << _params[i] <<'\n';
 	}
 	return true;
 }
@@ -129,7 +134,6 @@ bool Command::validNick(Client* client, const std::string& nickname) {
 
 void Command::nick(Server& server, Client* client) {
 	//NICK <nickname>
-	//want 코크풍선..
 	//NICK 변경가능
 	if (_params.empty()) {
 		client->addMessage(handleResponse(client->getNickname(), ERR_NEEDMOREPARAMS, "NICK"));
@@ -205,8 +209,7 @@ void Command::join(Server& server, Client* client) {
 			client->addMessage(handleResponse(channel_name, ERR_BADCHANMASK));
 			continue ;
 		}
-		if (channel_name.find(6) != std::string::npos
-			|| channel_name.find(':') != std::string::npos) {
+		if (channel_name.find(7) != std::string::npos) {
 			client->addMessage(handleResponse(channel_name, ERR_BADCHANMASK));
 			continue;
 		}
