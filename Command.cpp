@@ -136,16 +136,16 @@ void Command::nick(Server& server, Client* client) {
 	std::string nickname = _params[0];
 	if (!validNick(client, nickname))
 		return ;
+	if (server.findClient(nickname) || nickname == "bot") {
+		client->addMessage(handleResponse(client->getNickname(), ERR_NICKNAMEINUSE, nickname));
+		return ;
+	}
 	if (client->getNick()) {
 		std::map<std::string, Channel *> channel_list = server.getChannelList();
 		std::map<std::string, Channel *>::iterator it = channel_list.begin();
 		for (; it != channel_list.end(); it++)
 			it->second->changeInviteNick(client->getNickname(), nickname);
 		client->addMessage(messageFormat(NICK, client, nickname));
-	}
-	if (server.findClient(nickname) || nickname == "bot") {
-		client->addMessage(handleResponse(client->getNickname(), ERR_NICKNAMEINUSE, nickname));
-		return ;
 	}
 	client->setNickname(nickname);
 	client->setNick(true);
