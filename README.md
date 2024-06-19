@@ -26,6 +26,10 @@
 
 
 # TIG Count
-- jaejilee: 1
+- jaejilee: 4
 - mkong: 0
-- junhylee: 1
+- junhylee: 2
+
+# 프로젝트 기간
+- 시작: 2024.05.21  
+- 완료: 2024.06.17
