@@ -105,26 +105,26 @@ void    Server::makeCommand(int ident) {
 			std::cout << "client EOF\n";
 		disconnectClient(ident);
 	} else {
-		if (n <= 512)
-			buf[n - 1] = 0;
-		else
+		if (n < 512)
 			buf[n] = 0;
+		else
+			buf[n - 1] = 0;
 		client->setCommand(client->getCommand() + buf);
         if (client->getCommand().find('\n') != std::string::npos ||\
 			client->getCommand().find('\r') != std::string::npos) {
 			char find_char = (client->getCommand().find('\n') != std::string::npos) ? '\n' : '\r';
-			char del_char = (find_char == '\n') ? '\r' : '\n';
+			char del_char = (find_char == '\n' || client->getCommand().find('\r') == std::string::npos) ? '\r' : '\n';
 			std::istringstream iss(client->getCommand());
 			std::string tmp;
-			if (client->getCommand().find(find_char) != std::string::npos) {
-				while (std::getline(iss, tmp, find_char)) {
-					while (tmp.find(del_char) != std::string::npos)
-						tmp.replace(tmp.find(del_char), 1, "");
-					std::cout << "\nCommand : " << tmp << "\n";
-					cmd.handleCmd(*this, _client_list[ident], tmp);
-				}
+			while (std::getline(iss, tmp, find_char)) {
+				while (tmp.find(del_char) != std::string::npos)
+					tmp.replace(tmp.find(del_char), 1, "");
+				std::cout << "\nCommand : " << tmp << "\n";
+				cmd.handleCmd(*this, _client_list[ident], tmp);
+				client->setCommand(client->getCommand().substr(client->getCommand().find(find_char) + 1));
+				if (client->getCommand().find(find_char) == std::string::npos)
+					break ;
 			}
-            client->setCommand("");
         }
     }
 }
@@ -132,21 +132,21 @@ void    Server::makeCommand(int ident) {
 void	Server::sendMessage(int ident) {
 	std::map<int, Client *>::const_iterator it = _client_list.find(ident);
 	if (it != _client_list.end()) {
-		std::vector<std::string> msg_vec = it->second->getMessage();
-		for (std::size_t i  = 0; i < msg_vec.size(); ++i) {
-			std::size_t send_size = 0;
-			ssize_t n = 0;
-			while (send_size < msg_vec[i].length()) {
-				n = send(ident, msg_vec[i].c_str() + send_size, msg_vec[i].length(), 0);
-				if (n < 0) {
-					disconnectClient(ident);
-					return ;
-				}
-				send_size += n;
+		while (it->second->getMessage().size() > 0) {
+			ssize_t n = send(ident, it->second->getMessage()[0].c_str() + it->second->getSendSize(), it->second->getMessage()[0].length(), 0);
+			if (n < 0) {
+				disconnectClient(ident);
+				return ;
 			}
-			std::cout << "Send message : " << msg_vec[i];
+			if (it->second->getSendSize() + n < it->second->getMessage()[0].length()) {
+				it->second->setSendSize(it->second->getSendSize() + n);
+				return ;
+			} else {
+				std::cout << "Send message : " << it->second->getMessage()[0];
+				it->second->setSendSize(0);
+				it->second->eraseMessage();
+			}
 		}
-		it->second->clearMessage();
 		if (it->second->getDisconnect() == true) {
 			disconnectClient(ident);
 			return ;
