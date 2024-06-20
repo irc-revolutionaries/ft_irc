@@ -148,6 +148,7 @@ void Command::nick(Server& server, Client* client) {
 		client->addMessage(messageFormat(NICK, client, nickname));
 	}
 	client->setNickname(nickname);
+	client->addMessage(messageFormat(NICK, client, nickname));
 	client->setNick(true);
 	if (client->getNick() && client->getUser() && !client->getAllReady())
 		allready(client);

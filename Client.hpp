@@ -17,6 +17,7 @@ public :
 	void	setUser(bool check);
 	void	setAllReady(bool check);
 	void	setDisconnect(bool check);
+	void	setSendSize(std::size_t n);
 	
 	bool	getPass() const;
 	bool	getNick() const;
@@ -25,6 +26,7 @@ public :
 	bool	getDisconnect() const;
 
 	int	getFd() const;
+	std::size_t	getSendSize() const;
 	const std::string&	getNickname() const;
 	const std::string&	getUsername() const;
 	const std::string&	getRealname() const;
@@ -34,7 +36,7 @@ public :
 	const std::vector<std::string>&	getMessage() const;
 
 	void	addMessage(const std::string& message);
-	void	clearMessage();
+	void	eraseMessage();
 	const std::vector<std::string>&	getJoinedChannel() const;
 	void	clearJoinedChannel();
 	void	addJoinedChannel(const std::string& channel_name);
@@ -46,6 +48,7 @@ private :
 	std::string _hostname;
 	std::string _servername;
 	std::string	_command;
+	std::size_t	_send_size;
 	int			_fd;
 	bool		_pass;
 	bool		_nick;

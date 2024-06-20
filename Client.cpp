@@ -1,7 +1,7 @@
 #include "Client.hpp"
 
 Client::Client(int fd)
-: _nickname("*"), _fd(fd), _pass(false), _nick(false), _user(false), _allready(false), _disconnect(false) {}
+: _nickname("*"), _send_size(0), _fd(fd), _pass(false), _nick(false), _user(false), _allready(false), _disconnect(false) {}
 
 void	Client::setNickname(const std::string& nickname) { _nickname = nickname; }
 void	Client::setUsername(const std::string& username) { _username = username; }
@@ -14,8 +14,10 @@ void	Client::setNick(bool check) { _nick = check; }
 void	Client::setUser(bool check) { _user = check; }
 void	Client::setAllReady(bool check) { _allready = check; }
 void	Client::setDisconnect(bool check) { _disconnect = check; }
+void	Client::setSendSize(std::size_t n) { _send_size = n; }
 
 int	Client::getFd() const { return (_fd); }
+std::size_t Client::getSendSize() const { return (_send_size); }
 const std::string&	Client::getNickname() const { return (_nickname); }
 const std::string&	Client::getUsername() const { return (_username); }
 const std::string&	Client::getRealname() const { return (_realname); }
@@ -29,8 +31,8 @@ bool	Client::getUser() const { return (_user); }
 bool	Client::getAllReady() const { return (_allready); }
 bool	Client::getDisconnect() const { return (_disconnect); }
 
-void Client::clearMessage() {
-	_message.clear();
+void Client::eraseMessage() {
+	_message.erase(_message.begin());
 }
 
 void Client::addJoinedChannel(const std::string& channel_name) {
