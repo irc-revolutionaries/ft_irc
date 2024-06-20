@@ -36,7 +36,6 @@ public :
 	const std::vector<std::string>&	getMessage() const;
 
 	void	addMessage(const std::string& message);
-	void	clearMessage();
 	void	eraseMessage();
 	const std::vector<std::string>&	getJoinedChannel() const;
 	void	clearJoinedChannel();

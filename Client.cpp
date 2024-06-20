@@ -31,10 +31,6 @@ bool	Client::getUser() const { return (_user); }
 bool	Client::getAllReady() const { return (_allready); }
 bool	Client::getDisconnect() const { return (_disconnect); }
 
-void Client::clearMessage() {
-	_message.clear();
-}
-
 void Client::eraseMessage() {
 	_message.erase(_message.begin());
 }
